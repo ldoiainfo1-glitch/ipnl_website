@@ -1,0 +1,265 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useMandate } from '@/hooks/useMandates';
+import { useIntros } from '@/hooks/useIntros';
+import { useAuthStore } from '@/store/authStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  MapPin,
+  TrendingUp,
+  Calendar,
+  User,
+  Send,
+  ArrowLeft,
+} from 'lucide-react';
+import { formatIndianNumber, formatDate, formatArea } from '@/utils/formatters';
+
+export default function MandateDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { mandate, isLoading } = useMandate(id!);
+  const { sendIntro, quotaStatus, isSending } = useIntros();
+  
+  const [showIntroForm, setShowIntroForm] = useState(false);
+  const [introMessage, setIntroMessage] = useState('');
+
+  const handleSendIntro = async () => {
+    if (!mandate || !introMessage.trim()) return;
+
+    try {
+      await sendIntro({
+        mandateId: mandate.id,
+        receiverId: mandate.userId,
+        message: introMessage,
+      });
+      alert('Introduction request sent successfully!');
+      setShowIntroForm(false);
+      setIntroMessage('');
+    } catch (error: any) {
+      alert(error.detail || 'Failed to send introduction');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">Loading mandate details...</p>
+      </div>
+    );
+  }
+
+  if (!mandate) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg font-medium mb-2">Mandate not found</p>
+        <Button onClick={() => navigate('/marketplace')}>
+          Back to Marketplace
+        </Button>
+      </div>
+    );
+  }
+
+  const isMyMandate = mandate.userId === user?.id;
+  const canSendIntro = !isMyMandate && user?.tier !== 'OBSERVER' && (quotaStatus?.remaining || 0) > 0;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back Button */}
+      <Button variant="ghost" onClick={() => navigate(-1)}>
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+
+      {/* Header Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-3">
+                <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
+                  {mandate.type}
+                </Badge>
+                <Badge variant="outline">{mandate.assetClass}</Badge>
+                <Badge variant="secondary">{mandate.status}</Badge>
+                {mandate.isOffMarket && (
+                  <Badge>Off-Market</Badge>
+                )}
+              </div>
+              <h1 className="text-3xl font-bold mb-2">{mandate.title}</h1>
+            </div>
+            <div className="text-right ml-6">
+              <p className="text-3xl font-bold text-primary">
+                {formatIndianNumber(mandate.ticketSize)}
+              </p>
+              {mandate.ticketSizeMax && (
+                <p className="text-muted-foreground">
+                  to {formatIndianNumber(mandate.ticketSizeMax)}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="flex items-center text-muted-foreground">
+              <MapPin className="w-5 h-5 mr-2" />
+              <div>
+                <p className="text-sm font-medium text-foreground">{mandate.city}</p>
+                <p className="text-xs">{mandate.state}</p>
+              </div>
+            </div>
+            <div className="flex items-center text-muted-foreground">
+              <Calendar className="w-5 h-5 mr-2" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Posted</p>
+                <p className="text-xs">{formatDate(mandate.createdAt)}</p>
+              </div>
+            </div>
+            <div className="flex items-center text-muted-foreground">
+              <TrendingUp className="w-5 h-5 mr-2" />
+              <div>
+                <p className="text-sm font-medium text-foreground">{mandate.viewCount} views</p>
+                <p className="text-xs">{mandate.introCount} introductions</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="prose prose-invert max-w-none">
+            <h3 className="text-lg font-semibold mb-2">Description</h3>
+            <p className="text-muted-foreground whitespace-pre-line">
+              {mandate.description}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Property Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Property Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            {mandate.builtUpArea && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Built-up Area</p>
+                <p className="font-medium">{formatArea(mandate.builtUpArea)}</p>
+              </div>
+            )}
+            {mandate.plotArea && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Plot Area</p>
+                <p className="font-medium">{formatArea(mandate.plotArea)}</p>
+              </div>
+            )}
+            {mandate.locality && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Locality</p>
+                <p className="font-medium">{mandate.locality}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Tags</p>
+              <div className="flex flex-wrap gap-2">
+                {mandate.tags.map((tag, idx) => (
+                  <Badge key={idx} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Posted By */}
+      {mandate.user && !isMyMandate && user?.tier !== 'OBSERVER' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Posted By</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                <User className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <p className="font-semibold">{mandate.user.companyName}</p>
+                <p className="text-sm text-muted-foreground">{mandate.user.role}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      {!isMyMandate && (
+        <Card>
+          <CardContent className="p-6">
+            {user?.tier === 'OBSERVER' ? (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground mb-4">
+                  Upgrade to VERIFIED tier to send introductions
+                </p>
+                <Button onClick={() => navigate('/settings')}>
+                  Upgrade Account
+                </Button>
+              </div>
+            ) : showIntroForm ? (
+              <div className="space-y-4">
+                <div>
+                  <Label>Introduction Message</Label>
+                  <Textarea
+                    placeholder="Introduce yourself and explain your interest in this mandate..."
+                    value={introMessage}
+                    onChange={(e) => setIntroMessage(e.target.value)}
+                    rows={6}
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <Button 
+                    onClick={handleSendIntro} 
+                    disabled={!introMessage.trim() || isSending}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {isSending ? 'Sending...' : 'Send Introduction'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowIntroForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {quotaStatus?.remaining || 0} introductions remaining this month
+                </p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <Button 
+                  size="lg"
+                  onClick={() => setShowIntroForm(true)}
+                  disabled={!canSendIntro}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Request Introduction
+                </Button>
+                {!canSendIntro && (quotaStatus?.remaining === 0) && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    You've used all your introductions this month
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
