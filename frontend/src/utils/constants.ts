@@ -1,4 +1,4 @@
-import { UserRole, AssetClass, MandateType } from '@/types';
+import { UserRole, AssetClass, MandateType, PropertyType } from '@/types';
 
 // App constants
 export const APP_NAME = 'INDIA PROPERTY NETWORKS';
@@ -64,15 +64,20 @@ export const USER_ROLES = [
   { value: UserRole.LAND_AGGREGATOR, label: 'Land Aggregator' },
 ] as const;
 
-// Asset classes
+// Asset classes - Property Types
 export const ASSET_CLASSES = [
-  { value: AssetClass.RESIDENTIAL, label: 'Residential' },
-  { value: AssetClass.COMMERCIAL, label: 'Commercial' },
-  { value: AssetClass.INDUSTRIAL, label: 'Industrial' },
-  { value: AssetClass.HOSPITALITY, label: 'Hospitality' },
-  { value: AssetClass.RETAIL, label: 'Retail' },
-  { value: AssetClass.LAND, label: 'Land' },
-  { value: AssetClass.MIXED_USE, label: 'Mixed Use' },
+  { value: PropertyType.RESIDENTIAL_LAND, label: 'Residential Land' },
+  { value: PropertyType.COMMERCIAL_LAND, label: 'Commercial Land' },
+  { value: PropertyType.INDUSTRIAL_LAND, label: 'Industrial Land' },
+  { value: PropertyType.SOCIETY_REDEVELOPMENT, label: 'Society Redevelopment' },
+  { value: PropertyType.GRADE_A_OFFICE, label: 'Grade-A Office' },
+  { value: PropertyType.WAREHOUSING_LOGISTICS, label: 'Warehousing & Logistics' },
+  { value: PropertyType.DATA_CENTRES, label: 'Data Centres' },
+  { value: PropertyType.HOSPITALITY_RESORTS, label: 'Hospitality & Resorts' },
+  { value: PropertyType.RETAIL_MALL, label: 'Retail / Mall' },
+  { value: PropertyType.MIXED_USE_TOWNSHIPS, label: 'Mixed-use Townships' },
+  { value: PropertyType.PREMIUM_RESIDENTIAL, label: 'Premium Residential' },
+  { value: PropertyType.PLOTTED_DEVELOPMENT, label: 'Plotted Development' },
 ] as const;
 
 // Mandate types

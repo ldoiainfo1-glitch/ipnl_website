@@ -56,6 +56,27 @@ export enum AssetClass {
   MIXED_USE = 'MIXED_USE',
 }
 
+export enum PropertyType {
+  // Land types
+  RESIDENTIAL_LAND = 'RESIDENTIAL_LAND',
+  COMMERCIAL_LAND = 'COMMERCIAL_LAND',
+  INDUSTRIAL_LAND = 'INDUSTRIAL_LAND',
+  // Residential types
+  PREMIUM_RESIDENTIAL = 'PREMIUM_RESIDENTIAL',
+  PLOTTED_DEVELOPMENT = 'PLOTTED_DEVELOPMENT',
+  SOCIETY_REDEVELOPMENT = 'SOCIETY_REDEVELOPMENT',
+  // Commercial types
+  GRADE_A_OFFICE = 'GRADE_A_OFFICE',
+  RETAIL_MALL = 'RETAIL_MALL',
+  // Industrial types
+  WAREHOUSING_LOGISTICS = 'WAREHOUSING_LOGISTICS',
+  DATA_CENTRES = 'DATA_CENTRES',
+  // Hospitality types
+  HOSPITALITY_RESORTS = 'HOSPITALITY_RESORTS',
+  // Mixed Use types
+  MIXED_USE_TOWNSHIPS = 'MIXED_USE_TOWNSHIPS',
+}
+
 export enum IntroStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
@@ -141,6 +162,7 @@ export interface Mandate {
   
   // Asset Details
   assetClass: AssetClass;
+  propertyType?: PropertyType;
   builtUpArea?: number;
   plotArea?: number;
   
@@ -324,7 +346,7 @@ export interface CreateMandateRequest {
   city: string;
   state: string;
   locality?: string;
-  assetClass: AssetClass;
+  propertyType: PropertyType;
   builtUpArea?: number;
   plotArea?: number;
   ticketSize: number;

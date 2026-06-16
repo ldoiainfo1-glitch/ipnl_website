@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
 import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES, MANDATE_TYPES } from '@/utils/constants';
-import { MandateType, AssetClass, CreateMandateRequest } from '@/types';
+import { MandateType, CreateMandateRequest, PropertyType } from '@/types';
 
 export default function PostMandate() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function PostMandate() {
     city: '',
     state: '',
     locality: '',
-    assetClass: AssetClass.RESIDENTIAL,
+    propertyType: PropertyType.RESIDENTIAL_LAND,
     builtUpArea: undefined,
     plotArea: undefined,
     ticketSize: 0,
@@ -81,31 +81,46 @@ export default function PostMandate() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Basic Information</h3>
               
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="type">Mandate Type *</Label>
-                  <select
-                    id="type"
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as MandateType })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    required
-                  >
-                    {MANDATE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                  <Label className="text-sm uppercase tracking-wider text-muted-foreground">Mandate Type</Label>
+                  <div className="flex gap-0 mt-2 border border-input rounded-md overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: MandateType.BUY })}
+                      className={`
+                        flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
+                        ${formData.type === MandateType.BUY
+                          ? 'bg-blue-500/20 text-blue-400 border-r border-input'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
+                        }
+                      `}
+                    >
+                      BUY-SIDE (LOOKING FOR)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: MandateType.SELL })}
+                      className={`
+                        flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
+                        ${formData.type === MandateType.SELL
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50'
+                        }
+                      `}
+                    >
+                      SELL-SIDE (OFFERING)
+                    </button>
+                  </div>
                 </div>
 
                 <div>
                   <Label htmlFor="assetClass">Asset Class *</Label>
                   <select
                     id="assetClass"
-                    value={formData.assetClass}
-                    onChange={(e) => setFormData({ ...formData, assetClass: e.target.value as AssetClass })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={formData.propertyType}
+                    onChange={(e) => setFormData({ ...formData, propertyType: e.target.value as PropertyType })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2"
                     required
                   >
                     {ASSET_CLASSES.map((asset) => (

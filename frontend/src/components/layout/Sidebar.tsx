@@ -26,7 +26,7 @@ export default function Sidebar() {
     { icon: Users, label: 'Members', href: '/members' },
     { icon: PlusCircle, label: 'Post Mandate', href: '/post-mandate' },
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
-    { icon: Trophy, label: 'Leaderboard', href: '/leaderboard' },
+    { icon: Trophy, label: 'Ranking', href: '/leaderboard' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
     { icon: ShieldCheck, label: 'KYC Verification', href: '/kyc' },
     { icon: UserCircle, label: 'My Profile', href: '/profile' },
@@ -46,7 +46,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-card border-r border-border h-screen sticky top-0 flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b border-border">
-        <Link to="/dashboard" className="flex items-center space-x-3">
+        <Link to="/" className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-lg">IPN</span>
           </div>

@@ -8,6 +8,21 @@ import { UserTier } from '@/types';
 export default function Settings() {
   const { user } = useAuthStore();
 
+  const handleUpgrade = (tier: string) => {
+    alert(`Upgrade to ${tier} tier\n\nIn production, this would:\n- Redirect to payment gateway\n- Process subscription payment\n- Update your account tier\n\nContact: sales@ipnl.com for Enterprise`);
+  };
+
+  const handleChangePassword = () => {
+    alert('Change Password feature\n\nIn production, this would:\n- Send a password reset email\n- Or show a password change form');
+  };
+
+  const handleDeleteAccount = () => {
+    const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone.');
+    if (confirmed) {
+      alert('Account deletion would be processed here.\n\nIn production, this would:\n- Mark account for deletion\n- Send confirmation email\n- Schedule data removal');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
@@ -88,42 +103,57 @@ export default function Settings() {
       </Card>
 
       {/* Upgrade Options */}
-      {user?.tier !== 'ENTERPRISE' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Upgrade Your Plan</CardTitle>
-            <CardDescription>
-              Unlock more features and grow your network
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {Object.entries(TIER_FEATURES)
-                .filter(([tier]) => tier !== user?.tier)
-                .map(([tier, features]) => (
-                  <Card key={tier}>
-                    <CardContent className="p-4">
-                      <h3 className="text-xl font-bold mb-2">{features.name}</h3>
-                      <p className="text-2xl font-bold text-primary mb-4">
-                        {features.price}
-                      </p>
-                      <ul className="space-y-2 mb-4">
-                        {features.features.slice(0, 3).map((feature, idx) => (
-                          <li key={idx} className="text-sm text-muted-foreground">
-                            • {feature}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button className="w-full">
-                        Upgrade to {features.name}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Membership Tiers</CardTitle>
+          <CardDescription>
+            Choose the plan that fits your needs
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            {Object.entries(TIER_FEATURES).map(([tier, features]) => {
+              const isCurrentTier = tier === user?.tier;
+              return (
+                <Card 
+                  key={tier} 
+                  className={isCurrentTier ? 'border-primary border-2' : ''}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xl font-bold">{features.name}</h3>
+                      {isCurrentTier && (
+                        <Badge variant="default">Current</Badge>
+                      )}
+                    </div>
+                    <p className="text-2xl font-bold text-amber-500 mb-4">
+                      {features.price}
+                    </p>
+                    <ul className="space-y-2 mb-6 min-h-[120px]">
+                      {features.features.slice(0, 4).map((feature, idx) => (
+                        <li key={idx} className="text-sm text-muted-foreground">
+                          • {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button 
+                      className={`w-full font-semibold ${
+                        isCurrentTier 
+                          ? 'bg-secondary text-muted-foreground cursor-not-allowed' 
+                          : 'bg-amber-500 hover:bg-amber-600 text-black'
+                      }`}
+                      onClick={() => !isCurrentTier && handleUpgrade(features.name)}
+                      disabled={isCurrentTier}
+                    >
+                      {isCurrentTier ? 'Current Plan' : `Upgrade to ${features.name}`}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Danger Zone */}
       <Card className="border-destructive">
@@ -131,10 +161,18 @@ export default function Settings() {
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={handleChangePassword}
+          >
             Change Password
           </Button>
-          <Button variant="destructive" className="w-full">
+          <Button 
+            variant="destructive" 
+            className="w-full"
+            onClick={handleDeleteAccount}
+          >
             Delete Account
           </Button>
         </CardContent>
