@@ -16,7 +16,7 @@ export default function Leaderboard() {
 
   const filteredLeaderboard = leaderboard.filter(entry => {
     if (filter === 'all') return true;
-    const tier = entry.user?.membershipTier?.toUpperCase();
+    const tier = entry.user?.tier?.toUpperCase();
     return tier === filter.toUpperCase();
   });
 
@@ -88,13 +88,13 @@ export default function Leaderboard() {
                     variant="outline" 
                     className={`
                       text-xs uppercase tracking-wide
-                      ${entry.user?.membershipTier === 'ENTERPRISE' 
+                      ${entry.user?.tier === 'ENTERPRISE' 
                         ? 'border-blue-500 text-blue-400' 
                         : 'border-green-500 text-green-400'
                       }
                     `}
                   >
-                    {entry.user?.membershipTier === 'ENTERPRISE' ? 'ENTERPRISE' : 'KYC ✓'}
+                    {entry.user?.tier === 'ENTERPRISE' ? 'ENTERPRISE' : 'KYC ✓'}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">

@@ -25,6 +25,9 @@ export default function Landing() {
             <span className="text-xl font-bold">INDIA PROPERTY NETWORKS</span>
           </div>
           <div className="space-x-4">
+            <Button variant="ghost" onClick={() => navigate('/pricing')}>
+              Pricing
+            </Button>
             <Button variant="ghost" onClick={() => navigate('/login')}>
               Login
             </Button>

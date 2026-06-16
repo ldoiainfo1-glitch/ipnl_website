@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES, MANDATE_TYPES } from '@/utils/constants';
+import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES } from '@/utils/constants';
 import { MandateType, CreateMandateRequest, PropertyType } from '@/types';
 
 export default function PostMandate() {

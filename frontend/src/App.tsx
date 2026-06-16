@@ -32,6 +32,7 @@ import Privacy from './pages/static/Privacy';
 import Terms from './pages/static/Terms';
 import ReraProtocol from './pages/static/ReraProtocol';
 import Contact from './pages/static/Contact';
+import Pricing from './pages/Pricing';
 
 // Hooks & Store
 import { useAuthStore } from './store/authStore';
@@ -50,6 +51,7 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/rera-protocol" element={<ReraProtocol />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/pricing" element={<Pricing />} />
 
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>

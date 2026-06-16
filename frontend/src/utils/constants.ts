@@ -1,4 +1,4 @@
-import { UserRole, AssetClass, MandateType, PropertyType } from '@/types';
+import { UserRole, MandateType, PropertyType } from '@/types';
 
 // App constants
 export const APP_NAME = 'INDIA PROPERTY NETWORKS';

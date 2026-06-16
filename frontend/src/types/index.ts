@@ -123,7 +123,7 @@ export interface User {
   logo?: string;
   city?: string;
   state?: string;
-  assetPreferences?: AssetClass[];
+  assetPreferences?: PropertyType[];
   ticketSizeMin?: number;
   ticketSizeMax?: number;
   
@@ -389,7 +389,7 @@ export interface UpdateProfileRequest {
   linkedin?: string;
   city?: string;
   state?: string;
-  assetPreferences?: AssetClass[];
+  assetPreferences?: PropertyType[];
   ticketSizeMin?: number;
   ticketSizeMax?: number;
 }
@@ -403,7 +403,7 @@ export interface UpdateLogoRequest {
 export interface MemberFilters {
   role?: UserRole;
   city?: string;
-  assetClass?: AssetClass;
+  assetClass?: PropertyType;
   ticketSizeMin?: number;
   ticketSizeMax?: number;
   search?: string;

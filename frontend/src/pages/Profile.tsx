@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMyProfile } from '@/hooks/useProfile';
 import { useAuthStore } from '@/store/authStore';
-import { AssetClass, KycStatus, UserStatus } from '@/types';
+import { PropertyType, KycStatus, UserStatus } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,10 @@ function AssetPreferenceSelector({
   selected,
   onChange,
 }: {
-  selected: AssetClass[];
-  onChange: (v: AssetClass[]) => void;
+  selected: PropertyType[];
+  onChange: (v: PropertyType[]) => void;
 }) {
-  const toggle = (cls: AssetClass) => {
+  const toggle = (cls: PropertyType) => {
     if (selected.includes(cls)) {
       onChange(selected.filter((c) => c !== cls));
     } else {
@@ -61,7 +61,7 @@ export default function Profile() {
     linkedin: '',
     city: '',
     state: '',
-    assetPreferences: [] as AssetClass[],
+    assetPreferences: [] as PropertyType[],
     ticketSizeMin: '',
     ticketSizeMax: '',
   });

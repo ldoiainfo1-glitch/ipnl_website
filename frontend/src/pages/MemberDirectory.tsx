@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMembers } from '@/hooks/useProfile';
-import { AssetClass, MemberFilters, User, UserRole } from '@/types';
+import { MemberFilters, PropertyType, User, UserRole } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -178,7 +178,7 @@ export default function MemberDirectory() {
               <select
                 value={filters.assetClass ?? ''}
                 onChange={(e) =>
-                  setFilters({ ...filters, assetClass: (e.target.value as AssetClass) || undefined })
+                  setFilters({ ...filters, assetClass: (e.target.value as PropertyType) || undefined })
                 }
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
               >
