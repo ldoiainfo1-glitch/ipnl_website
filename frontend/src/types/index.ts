@@ -346,6 +346,14 @@ export interface UpdateKycStatusRequest {
   rejectionReason?: string;
 }
 
+export interface SubmitKycRequest {
+  panCard?: File;
+  gstCertificate?: File;
+  reraCertificate?: File;
+  incorporationCertificate?: File;
+  addressProof?: File;
+}
+
 // ========== FILTER TYPES ==========
 
 export interface MandateFilters {

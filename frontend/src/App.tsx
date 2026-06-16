@@ -15,6 +15,7 @@ import Messages from './pages/Messages';
 import Leaderboard from './pages/Leaderboard';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import KycVerification from './pages/KycVerification';
 
 // Admin Pages
 import KycQueue from './pages/admin/KycQueue';
@@ -66,6 +67,7 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/kyc" element={<KycVerification />} />
 
           {/* Admin Routes */}
           {user?.role === 'ADMIN' && (

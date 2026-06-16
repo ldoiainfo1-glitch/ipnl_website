@@ -11,6 +11,7 @@ import {
   Users,
   CheckCircle,
   BarChart3,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ export default function Sidebar() {
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: Trophy, label: 'Leaderboard', href: '/leaderboard' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
+    { icon: ShieldCheck, label: 'KYC Verification', href: '/kyc' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
