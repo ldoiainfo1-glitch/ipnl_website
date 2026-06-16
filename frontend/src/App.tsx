@@ -19,6 +19,7 @@ import KycVerification from './pages/KycVerification';
 import Profile from './pages/Profile';
 import MemberDirectory from './pages/MemberDirectory';
 import UserProfile from './pages/UserProfile';
+import Intros from './pages/Intros';
 
 // Admin Pages
 import KycQueue from './pages/admin/KycQueue';
@@ -74,6 +75,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/members" element={<MemberDirectory />} />
           <Route path="/members/:id" element={<UserProfile />} />
+          <Route path="/intros" element={<Intros />} />
 
           {/* Admin Routes */}
           {user?.role === 'ADMIN' && (

@@ -13,6 +13,7 @@ import {
   BarChart3,
   ShieldCheck,
   UserCircle,
+  Handshake,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,7 @@ export default function Sidebar() {
     { icon: Building2, label: 'Marketplace', href: '/marketplace' },
     { icon: Users, label: 'Members', href: '/members' },
     { icon: PlusCircle, label: 'Post Mandate', href: '/post-mandate' },
+    { icon: Handshake, label: 'Introductions', href: '/intros' },
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: Trophy, label: 'Ranking', href: '/leaderboard' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
