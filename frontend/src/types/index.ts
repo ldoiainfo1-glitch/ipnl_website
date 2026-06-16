@@ -100,6 +100,11 @@ export interface User {
   website?: string;
   linkedin?: string;
   logo?: string;
+  city?: string;
+  state?: string;
+  assetPreferences?: AssetClass[];
+  ticketSizeMin?: number;
+  ticketSizeMax?: number;
   
   // Reputation & Metrics
   reputationScore: number;
@@ -354,7 +359,35 @@ export interface SubmitKycRequest {
   addressProof?: File;
 }
 
+export interface UpdateProfileRequest {
+  companyName?: string;
+  mobile?: string;
+  companyDescription?: string;
+  website?: string;
+  linkedin?: string;
+  city?: string;
+  state?: string;
+  assetPreferences?: AssetClass[];
+  ticketSizeMin?: number;
+  ticketSizeMax?: number;
+}
+
+export interface UpdateLogoRequest {
+  logo: File;
+}
+
 // ========== FILTER TYPES ==========
+
+export interface MemberFilters {
+  role?: UserRole;
+  city?: string;
+  assetClass?: AssetClass;
+  ticketSizeMin?: number;
+  ticketSizeMax?: number;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
 
 export interface MandateFilters {
   type?: MandateType;

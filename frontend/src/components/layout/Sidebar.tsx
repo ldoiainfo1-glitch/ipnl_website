@@ -12,6 +12,7 @@ import {
   CheckCircle,
   BarChart3,
   ShieldCheck,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,11 +23,13 @@ export default function Sidebar() {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: Building2, label: 'Marketplace', href: '/marketplace' },
+    { icon: Users, label: 'Members', href: '/members' },
     { icon: PlusCircle, label: 'Post Mandate', href: '/post-mandate' },
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: Trophy, label: 'Leaderboard', href: '/leaderboard' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
     { icon: ShieldCheck, label: 'KYC Verification', href: '/kyc' },
+    { icon: UserCircle, label: 'My Profile', href: '/profile' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
