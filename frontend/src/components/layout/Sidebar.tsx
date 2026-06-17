@@ -49,12 +49,18 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link to="/" className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+          <img 
+            src="/assets/ipnl-logo.png?v=2" 
+            alt="India Property Network Ltd" 
+            className="h-12 w-auto"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          />
+          <div className="w-10 h-10 bg-primary rounded-lg items-center justify-center hidden">
             <span className="text-primary-foreground font-bold text-lg">IPN</span>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-foreground">IPN</h2>
-            <p className="text-xs text-muted-foreground">Property Networks</p>
           </div>
         </Link>
       </div>
