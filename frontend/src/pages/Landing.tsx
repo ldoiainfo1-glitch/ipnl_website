@@ -195,16 +195,16 @@ export default function Landing() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => navigate('/auth')} 
+                  onClick={() => navigate('/login')} 
                   className="hidden sm:inline-flex items-center gap-2"
                 >
                   <Users className="w-4 h-4" />
                   Demo login
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="hidden md:inline-flex">
+                <Button variant="ghost" size="sm" onClick={() => navigate('/login')} className="hidden md:inline-flex">
                   Sign in
                 </Button>
-                <Button size="sm" className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold" onClick={() => navigate('/auth')}>
+                <Button size="sm" className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold" onClick={() => navigate('/register')}>
                   Join the network
                 </Button>
               </>
