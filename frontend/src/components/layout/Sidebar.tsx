@@ -50,7 +50,7 @@ export default function Sidebar() {
       <div className="p-6 border-b border-border">
         <Link to="/" className="flex items-center space-x-3">
           <img 
-            src="/assets/ipnl-logo.png?v=2" 
+            src="/assets/ipnl-logo.jpeg?v=2" 
             alt="India Property Network Ltd" 
             className="h-12 w-auto"
             onError={(e) => {

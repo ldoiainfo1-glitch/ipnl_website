@@ -522,7 +522,7 @@ export default function Pricing() {
   onClick={() => navigate('/')}
 >
   <img
-    src="/assets/ipnl-logo.png?v=2"
+    src="/assets/ipnl-logo.jpeg?v=2"
     alt="India Property Network Ltd"
     className="h-12 md:h-16 w-auto"
     onError={(e) => {
@@ -670,7 +670,7 @@ export default function Pricing() {
       {/* Brand */}
       <div>
         <img
-          src="/assets/ipnl-logo.png?v=2"
+          src="/assets/ipnl-logo.jpeg?v=2"
           alt="India Property Network Ltd"
           className="h-14 w-auto mb-4"
         />
