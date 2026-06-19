@@ -55,12 +55,8 @@ export type ApiClientResponse<T> = Promise<ApiResponse<T>>;
 export async function handleApiRequest<T>(
   requestFn: () => Promise<{ data: T }>
 ): Promise<ApiResponse<T>> {
-  try {
-    const response = await requestFn();
-    return {
-      data: response.data,
-    };
-  } catch (error) {
-    throw error;
-  }
+  const response = await requestFn();
+  return {
+    data: response.data,
+  };
 }

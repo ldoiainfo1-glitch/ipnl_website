@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/store/authStore';
-import type { Message, Notification } from '@/types';
+import type { Notification } from '@/types';
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -45,7 +45,7 @@ export const useSocket = () => {
     });
 
     // Message events
-    socket.on('message:new', (_message: Message) => {
+    socket.on('message:new', () => {
       // Update messages cache
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
