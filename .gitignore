@@ -11,6 +11,10 @@ node_modules/
 .env.local
 .env.*.local
 
+# project-specific envs
+backend/.env
+frontend/.env.local
+
 # Logs
 *.log
 npm-debug.log*
