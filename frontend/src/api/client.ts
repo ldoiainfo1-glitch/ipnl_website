@@ -3,7 +3,7 @@ import { ApiResponse, ApiError } from '@/types';
 
 // Create axios instance with base configuration
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:4000/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -33,7 +33,30 @@ apiClient.interceptors.response.use(
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem('ipn_token');
-      window.location.href = '/login';
+
+      // IMPORTANT: never force a hard browser navigation here.
+      // window.location.href causes a full page reload, which on an SPA
+      // wipes all in-memory state — and if the page we land on (e.g. a
+      // currentUser query that runs on mount) also gets a 401, this
+      // interceptor fires again, causing a reload loop that looks like
+      // the page "flashing" or repeatedly reloading.
+      //
+      // Instead: clear the persisted auth state directly (so
+      // isAuthenticated flips to false) and let React Router's existing
+      // route guards in App.tsx redirect declaratively. Only do this if
+      // we're not already on a public/auth route, to avoid redundant
+      // work and any chance of a loop.
+      const publicPaths = ['/login', '/register', '/', '/pricing', '/privacy', '/terms', '/rera-protocol', '/contact'];
+      const onPublicPath = publicPaths.includes(window.location.pathname);
+
+      if (!onPublicPath) {
+        // Lazy import to avoid a circular dependency between the store
+        // (which doesn't import this client directly for auth state
+        // clearing) and this client module.
+        import('@/store/authStore').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        });
+      }
     }
 
     // Format error response according to RFC 7807

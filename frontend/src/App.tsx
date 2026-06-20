@@ -52,7 +52,6 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/rera-protocol" element={<ReraProtocol />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/pricing" element={<Pricing />} />
 
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>

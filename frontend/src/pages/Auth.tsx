@@ -24,6 +24,7 @@ export default function Auth() {
     reraNumber: '',
   });
 
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -31,6 +32,9 @@ export default function Auth() {
       if (isLogin) {
         await login({ email: formData.email, password: formData.password });
       } else {
+        console.log('Email:', formData.email);
+        console.log('Password:', formData.password);
+        console.log('Form Data:', formData);
         await register({
           email: formData.email,
           password: formData.password,
