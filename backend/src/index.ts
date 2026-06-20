@@ -4,12 +4,14 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth';
+import mandateRouter from './routes/mandates';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
+app.use('/api/mandates', mandateRouter);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

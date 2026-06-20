@@ -1,13 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database';
 
-let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+let supabaseAdmin: SupabaseClient<Database> | null = null;
 
-export function getSupabaseAdmin() {
+export function getSupabaseAdmin(): SupabaseClient<Database> | null {
   if (!supabaseAdmin) {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (url && key) {
-      supabaseAdmin = createClient(url, key);
+      supabaseAdmin = createClient<Database>(url, key);
     }
   }
   return supabaseAdmin;
