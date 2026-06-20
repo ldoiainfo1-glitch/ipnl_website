@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
-import { getSupabaseAdmin } from '../lib/supabaseServer';
-import { unauthorized, serverError } from '../utils/apiError';
+import { getSupabaseAdmin } from '../lib/supabaseServer.js';
+import { unauthorized, serverError } from '../utils/apiError.js';
 
 /**
  * Verifies the Supabase-issued JWT sent as `Authorization: Bearer <token>`
