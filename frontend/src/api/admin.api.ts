@@ -49,6 +49,10 @@ export const adminApi = {
     return apiClient.get<Mandate[]>('/admin/mandates');
   },
 
+  reviewMandate: async (id: string, data: { status: 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'; note?: string }) => {
+    return apiClient.patch<Mandate>(`/admin/mandates/${id}/review`, data);
+  },
+
   hideMandate: async (id: string, reason: string) => {
     return apiClient.patch(`/admin/mandates/${id}/hide`, { reason });
   },
@@ -59,6 +63,10 @@ export const adminApi = {
 
   deleteMandate: async (id: string) => {
     return apiClient.delete(`/admin/mandates/${id}`);
+  },
+
+  getUserVerificationDetail: async (userId: string) => {
+    return apiClient.get<{ user: User; kyc?: KycDocument; mandates: Mandate[] }>(`/admin/verification/users/${userId}`);
   },
 
   // Stats & Analytics

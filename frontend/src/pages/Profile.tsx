@@ -10,7 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES } from '@/utils/constants';
 import { formatIndianNumber } from '@/utils/formatters';
-import { ShieldCheck, Upload, Globe, Linkedin, Building2, Star } from 'lucide-react';
+import { ShieldCheck, Upload, Globe, Linkedin, Building2, Star, AlertCircle } from 'lucide-react';
+
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 function AssetPreferenceSelector({
   selected,
@@ -49,7 +52,15 @@ function AssetPreferenceSelector({
 
 export default function Profile() {
   const { user } = useAuthStore();
-  const { profile, isLoading, updateProfile, isUpdating, updateLogo, isUploadingLogo } = useMyProfile();
+  const {
+    profile,
+    isLoading,
+    updateProfile,
+    isUpdating,
+    updateLogo,
+    isUploadingLogo,
+    logoUploadProgress,
+  } = useMyProfile();
 
   const effectiveUser = profile ?? user;
 
@@ -67,6 +78,9 @@ export default function Profile() {
   });
 
   const [saved, setSaved] = useState(false);
+  const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [isLogoDragActive, setIsLogoDragActive] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -86,6 +100,14 @@ export default function Profile() {
     }
   }, [effectiveUser]);
 
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl);
+      }
+    };
+  }, [logoPreviewUrl]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateProfile({
@@ -104,11 +126,46 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await updateLogo({ logo: file });
+  const processLogoFile = async (file: File | null) => {
+    if (!file) return;
+
+    setLogoUploadError(null);
+
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+      setLogoUploadError('Only PNG, JPG/JPEG, and WEBP files are allowed.');
+      return;
     }
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setLogoUploadError('Logo size must be 5 MB or smaller.');
+      return;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(file);
+    if (logoPreviewUrl) {
+      URL.revokeObjectURL(logoPreviewUrl);
+    }
+    setLogoPreviewUrl(nextPreviewUrl);
+
+    try {
+      await updateLogo({ logo: file });
+      setLogoPreviewUrl(null);
+    } catch {
+      setLogoUploadError('Logo upload failed. Please try again.');
+    }
+  };
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    await processLogoFile(file);
+    e.target.value = '';
+  };
+
+  const handleLogoDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsLogoDragActive(false);
+    const file = e.dataTransfer.files?.[0] ?? null;
+    await processLogoFile(file);
   };
 
   if (isLoading) {
@@ -121,6 +178,7 @@ export default function Profile() {
 
   const isVerified = effectiveUser?.kycStatus === KycStatus.APPROVED;
   const isApproved = effectiveUser?.status === UserStatus.APPROVED;
+  const displayedLogo = logoPreviewUrl ?? effectiveUser?.logo;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -136,33 +194,67 @@ export default function Profile() {
         <CardContent className="py-6">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <div className="relative group">
-              <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-border">
-                {effectiveUser?.logo ? (
+            <div className="space-y-2">
+              <div
+                className={`relative group w-20 h-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 transition-colors ${
+                  isLogoDragActive ? 'border-primary' : 'border-border'
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsLogoDragActive(true);
+                }}
+                onDragLeave={() => setIsLogoDragActive(false)}
+                onDrop={handleLogoDrop}
+              >
+                {displayedLogo ? (
                   <img
-                    src={effectiveUser.logo}
+                    src={displayedLogo}
                     alt="Company logo"
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <Building2 className="w-10 h-10 text-muted-foreground" />
                 )}
+                <button
+                  type="button"
+                  onClick={() => logoRef.current?.click()}
+                  className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                  disabled={isUploadingLogo}
+                >
+                  <Upload className="w-5 h-5 text-white" />
+                </button>
+                <input
+                  ref={logoRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleLogoChange}
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => logoRef.current?.click()}
-                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                disabled={isUploadingLogo}
-              >
-                <Upload className="w-5 h-5 text-white" />
-              </button>
-              <input
-                ref={logoRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={handleLogoChange}
-              />
+              <div className="text-center text-[11px] text-muted-foreground">Drop logo here</div>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => logoRef.current?.click()}
+                  className="text-xs px-2 py-1 rounded-md border border-border hover:border-primary"
+                  disabled={isUploadingLogo}
+                >
+                  Replace
+                </button>
+                {logoPreviewUrl && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      URL.revokeObjectURL(logoPreviewUrl);
+                      setLogoPreviewUrl(null);
+                    }}
+                    className="text-xs px-2 py-1 rounded-md border border-border hover:border-destructive"
+                    disabled={isUploadingLogo}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="flex-1 min-w-0">
@@ -190,6 +282,26 @@ export default function Profile() {
               </div>
             </div>
           </div>
+          {(isUploadingLogo || logoUploadProgress !== null) && (
+            <div className="mt-4 space-y-1">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Uploading logo...</span>
+                <span>{logoUploadProgress ?? 0}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${logoUploadProgress ?? 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {logoUploadError && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-destructive">
+              <AlertCircle className="w-4 h-4" />
+              <span>{logoUploadError}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

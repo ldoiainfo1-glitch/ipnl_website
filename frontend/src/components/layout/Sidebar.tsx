@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   UserCircle,
   Handshake,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +41,7 @@ export default function Sidebar() {
     { icon: Building2, label: 'Mandates', href: '/admin/mandates' },
     { icon: Users, label: 'Users', href: '/admin/users' },
     { icon: BarChart3, label: 'Statistics', href: '/admin/stats' },
+    { icon: ScrollText, label: 'Audit History', href: '/admin/audit' },
   ];
 
   const isActive = (href: string) => location.pathname === href;

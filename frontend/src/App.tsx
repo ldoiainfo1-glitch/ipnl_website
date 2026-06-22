@@ -26,6 +26,7 @@ import KycQueue from './pages/admin/KycQueue';
 import AdminMandates from './pages/admin/AdminMandates';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminStats from './pages/admin/AdminStats';
+import AdminAuditHistory from './pages/admin/AdminAuditHistory';
 
 // Static Pages
 import Privacy from './pages/static/Privacy';
@@ -86,6 +87,7 @@ function App() {
               <Route path="/admin/mandates" element={<AdminMandates />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/stats" element={<AdminStats />} />
+              <Route path="/admin/audit" element={<AdminAuditHistory />} />
             </>
           )}
         </Route>

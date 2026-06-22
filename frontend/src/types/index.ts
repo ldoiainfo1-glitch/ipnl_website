@@ -28,6 +28,7 @@ export enum UserStatus {
 }
 
 export enum KycStatus {
+  NOT_SUBMITTED = 'NOT_SUBMITTED',
   SUBMITTED = 'SUBMITTED',
   UNDER_REVIEW = 'UNDER_REVIEW',
   APPROVED = 'APPROVED',
@@ -183,6 +184,12 @@ export interface Mandate {
   
   createdAt: Date;
   updatedAt: Date;
+
+  // Admin moderation metadata
+  moderationStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  moderationNote?: string;
+  moderationReviewedBy?: string;
+  moderationReviewedAt?: Date;
 }
 
 export interface Introduction {
@@ -280,6 +287,7 @@ export interface KycDocument {
   reviewedBy?: string;
   reviewedAt?: Date;
   rejectionReason?: string;
+  reviewNote?: string;
   
   createdAt: Date;
   updatedAt: Date;
@@ -293,6 +301,7 @@ export interface AuditEvent {
   action: string;
   entityType: string;
   entityId: string;
+  note?: string;
   changes?: Record<string, unknown>;
   
   createdAt: Date;
@@ -371,6 +380,7 @@ export interface UpdateKycStatusRequest {
   userId: string;
   status: KycStatus;
   rejectionReason?: string;
+  reviewNote?: string;
 }
 
 export interface SubmitKycRequest {

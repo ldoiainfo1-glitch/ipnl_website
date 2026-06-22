@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/api/profile.api';
 import { useAuthStore } from '@/store/authStore';
@@ -6,6 +7,7 @@ import { MemberFilters, UpdateProfileRequest, UpdateLogoRequest } from '@/types'
 export const useMyProfile = () => {
   const queryClient = useQueryClient();
   const { user: storeUser } = useAuthStore();
+  const [logoUploadProgress, setLogoUploadProgress] = useState<number | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['myProfile'],
@@ -25,12 +27,24 @@ export const useMyProfile = () => {
   });
 
   const updateLogoMutation = useMutation({
-    mutationFn: (data: UpdateLogoRequest) => profileApi.updateLogo(data),
+    mutationFn: ({ data, onProgress }: { data: UpdateLogoRequest; onProgress?: (progress: number) => void }) =>
+      profileApi.updateLogo(data, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
+    onSettled: () => {
+      setLogoUploadProgress(null);
+    },
   });
+
+  const updateLogo = async (data: UpdateLogoRequest) => {
+    setLogoUploadProgress(0);
+    return updateLogoMutation.mutateAsync({
+      data,
+      onProgress: (progress) => setLogoUploadProgress(progress),
+    });
+  };
 
   return {
     profile,
@@ -38,8 +52,9 @@ export const useMyProfile = () => {
     updateProfile: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
-    updateLogo: updateLogoMutation.mutateAsync,
+    updateLogo,
     isUploadingLogo: updateLogoMutation.isPending,
+    logoUploadProgress,
   };
 };
 

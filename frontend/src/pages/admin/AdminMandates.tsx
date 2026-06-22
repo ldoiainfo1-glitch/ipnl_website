@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Building2,
-  Eye,
-  EyeOff,
-  Trash2,
+  CheckCircle,
+  Clock,
+  XCircle,
   MapPin,
   TrendingUp,
 } from 'lucide-react';
@@ -32,42 +32,35 @@ export default function AdminMandates() {
     },
   });
 
-  const hideMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      adminApi.hideMandate(id, reason),
+  const reviewMutation = useMutation({
+    mutationFn: ({ id, status, note }: { id: string; status: 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'; note?: string }) =>
+      adminApi.reviewMandate(id, { status, note }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
   });
 
-  const unhideMutation = useMutation({
-    mutationFn: (id: string) => adminApi.unhideMandate(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => adminApi.deleteMandate(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
-  });
-
-  const handleHide = (mandate: Mandate) => {
-    const reason = prompt(`Reason for hiding "${mandate.title}":`);
-    if (reason?.trim()) {
-      hideMutation.mutate({ id: mandate.id, reason: reason.trim() });
-    }
+  const markUnderReview = (mandate: Mandate) => {
+    const note = prompt(`Why is "${mandate.title}" still in progress?`);
+    if (!note?.trim()) return;
+    reviewMutation.mutate({ id: mandate.id, status: 'UNDER_REVIEW', note: note.trim() });
   };
 
-  const handleDelete = (mandate: Mandate) => {
-    if (confirm(`Permanently delete "${mandate.title}"? This cannot be undone.`)) {
-      deleteMutation.mutate(mandate.id);
-    }
+  const rejectMandate = (mandate: Mandate) => {
+    const note = prompt(`Rejection reason for "${mandate.title}":`);
+    if (!note?.trim()) return;
+    reviewMutation.mutate({ id: mandate.id, status: 'REJECTED', note: note.trim() });
   };
 
-  const isMutating =
-    hideMutation.isPending || unhideMutation.isPending || deleteMutation.isPending;
+  const approveMandate = (mandate: Mandate) => {
+    reviewMutation.mutate({ id: mandate.id, status: 'APPROVED' });
+  };
 
-  const activeCount = mandates.filter((m) => m.status === MandateStatus.ACTIVE).length;
-  const closedCount = mandates.filter(
-    (m) => m.status === MandateStatus.CLOSED || m.status === MandateStatus.EXPIRED
+  const isMutating = reviewMutation.isPending;
+
+  const liveCount = mandates.filter((m) => m.moderationStatus === 'APPROVED').length;
+  const pendingCount = mandates.filter(
+    (m) => m.moderationStatus === 'PENDING' || m.moderationStatus === 'UNDER_REVIEW',
   ).length;
+  const rejectedCount = mandates.filter((m) => m.moderationStatus === 'REJECTED').length;
 
   return (
     <div className="space-y-6">
@@ -77,7 +70,7 @@ export default function AdminMandates() {
       </div>
 
       {/* Stats strip */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="py-4 text-center">
             <p className="text-2xl font-bold">{mandates.length}</p>
@@ -86,14 +79,20 @@ export default function AdminMandates() {
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-green-500">{activeCount}</p>
-            <p className="text-sm text-muted-foreground">Active</p>
+            <p className="text-2xl font-bold text-amber-500">{pendingCount}</p>
+            <p className="text-sm text-muted-foreground">Pending / In Progress</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-muted-foreground">{closedCount}</p>
-            <p className="text-sm text-muted-foreground">Closed / Expired</p>
+            <p className="text-2xl font-bold text-green-500">{liveCount}</p>
+            <p className="text-sm text-muted-foreground">Live</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4 text-center">
+            <p className="text-2xl font-bold text-destructive">{rejectedCount}</p>
+            <p className="text-sm text-muted-foreground">Rejected</p>
           </CardContent>
         </Card>
       </div>
@@ -125,6 +124,9 @@ export default function AdminMandates() {
                       <Badge variant={STATUS_VARIANT[mandate.status] as any}>
                         {mandate.status}
                       </Badge>
+                      <Badge variant={mandate.moderationStatus === 'APPROVED' ? 'success' : mandate.moderationStatus === 'REJECTED' ? 'destructive' : 'warning'}>
+                        {mandate.moderationStatus ?? 'PENDING'}
+                      </Badge>
                       {mandate.isOffMarket && (
                         <Badge variant="outline">Off-Market</Badge>
                       )}
@@ -146,6 +148,9 @@ export default function AdminMandates() {
                         By: {mandate.user.companyName}
                       </p>
                     )}
+                    {mandate.moderationNote && (
+                      <p className="text-xs text-muted-foreground mt-1">Review note: {mandate.moderationNote}</p>
+                    )}
                   </div>
 
                   <div className="text-right shrink-0">
@@ -162,27 +167,28 @@ export default function AdminMandates() {
                       size="sm"
                       variant="outline"
                       disabled={isMutating}
-                      onClick={() =>
-                        mandate.status === MandateStatus.ACTIVE
-                          ? handleHide(mandate)
-                          : unhideMutation.mutate(mandate.id)
-                      }
-                      title={mandate.status === MandateStatus.ACTIVE ? 'Hide mandate' : 'Unhide mandate'}
+                      onClick={() => markUnderReview(mandate)}
+                      title="Mark in progress"
                     >
-                      {mandate.status === MandateStatus.ACTIVE ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                      <Clock className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      disabled={isMutating}
+                      onClick={() => approveMandate(mandate)}
+                      title="Approve mandate"
+                    >
+                      <CheckCircle className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
                       disabled={isMutating}
-                      onClick={() => handleDelete(mandate)}
-                      title="Delete mandate"
+                      onClick={() => rejectMandate(mandate)}
+                      title="Reject mandate"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <XCircle className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

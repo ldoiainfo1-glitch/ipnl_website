@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin.api';
-import { KycDocument, KycStatus } from '@/types';
+import { KycDocument, KycStatus, Mandate, User } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, Eye, FileText, Clock } from 'lucide-react';
-import { formatDate } from '@/utils/formatters';
+import { CheckCircle, XCircle, Eye, FileText, Clock, ShieldCheck } from 'lucide-react';
+import { formatDate, formatIndianNumber } from '@/utils/formatters';
+
+function statusToLabel(status: KycStatus) {
+  return status.replace('_', ' ');
+}
 
 function RejectionModal({
   onConfirm,
@@ -86,6 +90,16 @@ function KycDocumentLinks({ doc }: { doc: KycDocument }) {
 export default function KycQueue() {
   const queryClient = useQueryClient();
   const [rejectingUserId, setRejectingUserId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  const { data: selectedUserDetail } = useQuery({
+    queryKey: ['adminVerificationDetail', selectedUserId],
+    queryFn: async () => {
+      const res = await adminApi.getUserVerificationDetail(selectedUserId!);
+      return res.data;
+    },
+    enabled: !!selectedUserId,
+  });
 
   const {
     data: kycQueue = [],
@@ -103,6 +117,7 @@ export default function KycQueue() {
     mutationFn: adminApi.updateKycStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminKycQueue'] });
+      queryClient.invalidateQueries({ queryKey: ['adminVerificationDetail'] });
       setRejectingUserId(null);
     },
   });
@@ -116,6 +131,16 @@ export default function KycQueue() {
       userId,
       status: KycStatus.REJECTED,
       rejectionReason: reason,
+    });
+  };
+
+  const handleUnderReview = (userId: string) => {
+    const note = prompt('Why is this KYC still in progress? Add a note for the user/admin team:');
+    if (!note?.trim()) return;
+    updateStatusMutation.mutate({
+      userId,
+      status: KycStatus.UNDER_REVIEW,
+      reviewNote: note.trim(),
     });
   };
 
@@ -133,6 +158,21 @@ export default function KycQueue() {
   );
   const reviewedItems = kycQueue.filter(
     (d) => d.status === KycStatus.APPROVED || d.status === KycStatus.REJECTED
+  );
+
+  const renderMandate = (mandate: Mandate) => (
+    <div key={mandate.id} className="border border-border rounded-md p-3">
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-medium text-sm truncate">{mandate.title}</p>
+        <Badge variant="secondary">{mandate.moderationStatus ?? 'PENDING'}</Badge>
+      </div>
+      <p className="text-xs text-muted-foreground mt-1">
+        {mandate.city}, {mandate.state} · {formatIndianNumber(mandate.ticketSize)}
+      </p>
+      {mandate.moderationNote && (
+        <p className="text-xs text-muted-foreground mt-1">Note: {mandate.moderationNote}</p>
+      )}
+    </div>
   );
 
   return (
@@ -178,15 +218,15 @@ export default function KycQueue() {
         </Card>
       </div>
 
-      {/* Pending Queue */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-amber-500" />
-            Pending Verification ({pendingItems.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-500" />
+              Pending Verification ({pendingItems.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
           {isLoading && (
             <p className="text-muted-foreground text-sm py-6 text-center">Loading queue...</p>
           )}
@@ -220,9 +260,30 @@ export default function KycQueue() {
                   <p className="text-xs text-muted-foreground">
                     Submitted: {doc.createdAt ? formatDate(doc.createdAt) : '—'}
                   </p>
+                  {doc.reviewNote && (
+                    <p className="text-xs text-amber-600">In-progress note: {doc.reviewNote}</p>
+                  )}
                   <KycDocumentLinks doc={doc} />
                 </div>
                 <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={updateStatusMutation.isPending}
+                    onClick={() => setSelectedUserId(doc.userId)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Review
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={updateStatusMutation.isPending}
+                    onClick={() => handleUnderReview(doc.userId)}
+                  >
+                    <Clock className="w-4 h-4 mr-1" />
+                    In Progress
+                  </Button>
                   <Button
                     size="sm"
                     variant="default"
@@ -245,8 +306,60 @@ export default function KycQueue() {
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="xl:sticky xl:top-24">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5" />
+              User Verification Dossier
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!selectedUserId && (
+              <p className="text-sm text-muted-foreground">
+                Click Review on any user to see all uploaded documents and submitted mandates in one place.
+              </p>
+            )}
+
+            {selectedUserDetail && (
+              <>
+                <div className="border border-border rounded-md p-3 space-y-1">
+                  <p className="font-medium text-sm">{(selectedUserDetail.user as User).companyName}</p>
+                  <p className="text-xs text-muted-foreground">{(selectedUserDetail.user as User).email}</p>
+                  <p className="text-xs text-muted-foreground">Role: {(selectedUserDetail.user as User).role}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Uploaded Documents</p>
+                  {selectedUserDetail.kyc ? (
+                    <KycDocumentLinks doc={selectedUserDetail.kyc} />
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No KYC record yet.</p>
+                  )}
+                  {selectedUserDetail.kyc?.reviewNote && (
+                    <p className="text-xs text-amber-600">In-progress note: {selectedUserDetail.kyc.reviewNote}</p>
+                  )}
+                  {selectedUserDetail.kyc?.rejectionReason && (
+                    <p className="text-xs text-destructive">Rejection reason: {selectedUserDetail.kyc.rejectionReason}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">User Mandates</p>
+                  <div className="space-y-2 max-h-64 overflow-auto pr-1">
+                    {selectedUserDetail.mandates.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No mandates submitted.</p>
+                    )}
+                    {selectedUserDetail.mandates.map(renderMandate)}
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Reviewed Items */}
       {reviewedItems.length > 0 && (
@@ -268,13 +381,16 @@ export default function KycQueue() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">User ID: {doc.userId}</span>
                       <Badge variant={statusBadgeVariant(doc.status) as any}>
-                        {doc.status.replace('_', ' ')}
+                        {statusToLabel(doc.status)}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Reviewed: {doc.reviewedAt ? formatDate(doc.reviewedAt) : '—'}
                       {doc.reviewedBy && ` by ${doc.reviewedBy}`}
                     </p>
+                    {doc.reviewNote && (
+                      <p className="text-xs text-amber-600">In-progress note: {doc.reviewNote}</p>
+                    )}
                     {doc.rejectionReason && (
                       <p className="text-xs text-destructive">
                         Reason: {doc.rejectionReason}

@@ -27,7 +27,7 @@ export default function PostMandate() {
     ticketSize: 0,
     ticketSizeMax: undefined,
     tags: [],
-    isOffMarket: true,
+    isOffMarket: false,
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -37,7 +37,7 @@ export default function PostMandate() {
     
     try {
       await createMandate(formData);
-      alert('Mandate posted successfully!');
+      alert('Mandate submitted successfully and is now pending admin approval before going live.');
       navigate('/marketplace');
     } catch (error: any) {
       alert(error.detail || 'Failed to post mandate');
@@ -316,7 +316,7 @@ export default function PostMandate() {
                   className="w-4 h-4 rounded border-input"
                 />
                 <Label htmlFor="isOffMarket" className="cursor-pointer">
-                  Mark as Off-Market (Exclusive to IPN)
+                  Mark as Off-Market (still visible inside IPN, hidden from public listing channels)
                 </Label>
               </div>
             </div>
