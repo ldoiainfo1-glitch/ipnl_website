@@ -2,6 +2,7 @@ import express from 'express';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { v4 as uuidv4 } from 'uuid';
 import { LoginRequest, RegisterRequest } from '../models/user';
+import { toUserDTO } from '../models/profile';
 
 const router = express.Router();
 
@@ -109,17 +110,58 @@ router.get('/me', async (req, res) => {
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data?.user) return res.status(401).json({ message: 'invalid token' });
     
-    res.json({ 
-      user: { 
-        id: data.user.id, 
-        email: data.user.email,
-        name: data.user.user_metadata?.name || '',
-        companyName: data.user.user_metadata?.companyName || '',
-        role: 'user',
-        status: 'active',
-        kycStatus: 'not_submitted',
-      } 
-    });
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    const metadataRole = String(data.user.user_metadata?.role || data.user.app_metadata?.role || '').toUpperCase();
+    const user = profile
+      ? toUserDTO(
+          {
+            ...profile,
+            role: metadataRole === 'ADMIN' ? 'ADMIN' : profile.role,
+          },
+        )
+      : {
+          id: data.user.id,
+          email: data.user.email,
+          companyName: data.user.user_metadata?.companyName || '',
+          role: metadataRole || 'DEVELOPER',
+          status: 'APPROVED',
+          kycStatus: 'NOT_SUBMITTED',
+        };
+
+    res.json(user);
+  } catch (err: any) {
+    res.status(401).json({ message: err.message });
+  }
+});
+
+router.get('/admin-access', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ message: 'missing auth' });
+  const parts = auth.split(' ');
+  if (parts.length !== 2) return res.status(401).json({ message: 'invalid auth header' });
+  const token = parts[1];
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.status(500).json({ message: 'supabase not configured' });
+
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) return res.status(401).json({ message: 'invalid token' });
+
+    const metadataRole = String(data.user.user_metadata?.role || data.user.app_metadata?.role || '').toUpperCase();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle();
+    const profileRole = String(profile?.role || '').toUpperCase();
+
+    res.json({ isAdmin: metadataRole === 'ADMIN' || profileRole === 'ADMIN' });
   } catch (err: any) {
     res.status(401).json({ message: err.message });
   }

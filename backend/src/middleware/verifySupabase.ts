@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
-import { getSupabaseAdmin } from '../lib/supabaseServer.js';
-import { unauthorized, serverError } from '../utils/apiError.js';
+import { getSupabaseAdmin } from '../lib/supabaseServer';
+import { unauthorized, serverError } from '../utils/apiError';
 
 /**
  * Verifies the Supabase-issued JWT sent as `Authorization: Bearer <token>`
@@ -29,6 +29,19 @@ export const verifySupabase: RequestHandler = async (req, res, next) => {
   try {
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data?.user) return unauthorized(res, 'Invalid or expired token');
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    if (String(profile?.role || '').toUpperCase() === 'ADMIN') {
+      data.user.user_metadata = {
+        ...(data.user.user_metadata || {}),
+        role: 'ADMIN',
+      };
+    }
 
     req.user = data.user;
     next();
