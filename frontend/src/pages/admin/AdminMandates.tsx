@@ -13,6 +13,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { formatDate, formatIndianNumber, formatRelativeTime } from '@/utils/formatters';
+import { FEATURES } from '@/lib/features';
 
 const STATUS_VARIANT: Record<MandateStatus, string> = {
   [MandateStatus.ACTIVE]: 'success',
@@ -139,7 +140,8 @@ export default function AdminMandates() {
                       </span>
                       <span className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" />
-                        {mandate.viewCount} views · {mandate.introCount} intros
+                        {mandate.viewCount} views
+                        {FEATURES.introductions && ` · ${mandate.introCount} intros`}
                       </span>
                       <span>{formatRelativeTime(mandate.createdAt)}</span>
                     </div>

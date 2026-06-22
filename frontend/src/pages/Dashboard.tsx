@@ -16,13 +16,27 @@ import {
 } from 'lucide-react';
 import { formatIndianNumber, formatRelativeTime } from '@/utils/formatters';
 
+const MODERATION_LABELS: Record<string, string> = {
+  PENDING: 'Pending Approval',
+  UNDER_REVIEW: 'Under Review',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+};
+
+const MODERATION_VARIANTS: Record<string, 'outline' | 'warning' | 'success' | 'destructive'> = {
+  PENDING: 'warning',
+  UNDER_REVIEW: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'destructive',
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { myMandates, isLoadingMyMandates } = useMandates();
   const { sentIntros, receivedIntros, quotaStatus } = useIntros(FEATURES.introductions);
 
-  const activeMandates = myMandates.filter((m) => m.status === 'ACTIVE');
+  const activeMandates = myMandates.filter((m) => m.status === 'ACTIVE' && m.moderationStatus === 'APPROVED');
   const quotaRemaining = (quotaStatus?.remaining || 0);
 
   return (
@@ -153,12 +167,24 @@ export default function Dashboard() {
                       <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
                         {mandate.type}
                       </Badge>
-                      <Badge variant="outline">{mandate.status}</Badge>
+                      <Badge variant={MODERATION_VARIANTS[mandate.moderationStatus || 'PENDING']}>
+                        {MODERATION_LABELS[mandate.moderationStatus || 'PENDING']}
+                      </Badge>
                     </div>
                     <h4 className="font-medium">{mandate.title}</h4>
                     <p className="text-sm text-muted-foreground">
                       {mandate.city} • {formatRelativeTime(mandate.createdAt)}
                     </p>
+                    {mandate.moderationStatus === 'REJECTED' && mandate.moderationNote && (
+                      <p className="text-sm text-destructive mt-2">
+                        Rejection reason: {mandate.moderationNote}
+                      </p>
+                    )}
+                    {mandate.moderationStatus === 'UNDER_REVIEW' && mandate.moderationNote && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Review note: {mandate.moderationNote}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right ml-4">
                     <p className="font-bold text-primary">
