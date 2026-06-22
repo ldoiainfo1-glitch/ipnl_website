@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 interface StorageConfig {
   provider: 'placeholder' | 's3';
@@ -49,6 +50,17 @@ export function createObjectUrl(path: string): string {
   return `${config.baseUrl}/${cleanPath}`;
 }
 
+function getObjectKeyFromUrl(urlOrPath: string): string {
+  if (!/^https?:\/\//i.test(urlOrPath)) return urlOrPath.replace(/^\/+/, '');
+
+  try {
+    const url = new URL(urlOrPath);
+    return decodeURIComponent(url.pathname.replace(/^\/+/, ''));
+  } catch {
+    return urlOrPath.replace(/^\/+/, '');
+  }
+}
+
 export function createUploadPath(namespace: string, userId: string, extension = 'bin'): string {
   const safeNamespace = namespace.replace(/[^a-zA-Z0-9/_-]/g, '');
   const safeExt = extension.replace(/[^a-zA-Z0-9]/g, '') || 'bin';
@@ -95,4 +107,22 @@ export async function uploadObject(input: UploadObjectInput): Promise<{ url: str
   );
 
   return { url, provider: 's3' };
+}
+
+export async function createPrivateObjectViewUrl(urlOrPath: string, expiresInSeconds = 900): Promise<string> {
+  const config = getConfig();
+  if (config.provider !== 's3') return urlOrPath;
+
+  const client = getS3Client(config);
+  if (!client) return urlOrPath;
+
+  const key = getObjectKeyFromUrl(urlOrPath);
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    }),
+    { expiresIn: expiresInSeconds },
+  );
 }

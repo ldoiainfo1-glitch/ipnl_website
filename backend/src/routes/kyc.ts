@@ -2,18 +2,30 @@ import express from 'express';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, serverError, unauthorized } from '../utils/apiError';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
-import { createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
+import { createPrivateObjectViewUrl, createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
 import { upload, uploadErrorHandler } from '../middleware/upload';
 
-function rowToKycDoc(row: any) {
+async function signDocumentUrl(url?: string | null) {
+  return url ? createPrivateObjectViewUrl(url) : undefined;
+}
+
+async function rowToKycDoc(row: any) {
+  const [panCard, gstCertificate, reraCertificate, incorporationCertificate, addressProof] = await Promise.all([
+    signDocumentUrl(row.pan_card),
+    signDocumentUrl(row.gst_certificate),
+    signDocumentUrl(row.rera_certificate),
+    signDocumentUrl(row.incorporation_certificate),
+    signDocumentUrl(row.address_proof),
+  ]);
+
   return {
     id: row.id,
     userId: row.user_id,
-    panCard: row.pan_card ?? undefined,
-    gstCertificate: row.gst_certificate ?? undefined,
-    reraCertificate: row.rera_certificate ?? undefined,
-    incorporationCertificate: row.incorporation_certificate ?? undefined,
-    addressProof: row.address_proof ?? undefined,
+    panCard,
+    gstCertificate,
+    reraCertificate,
+    incorporationCertificate,
+    addressProof,
     status: row.status,
     reviewedBy: row.reviewed_by ?? undefined,
     reviewedAt: row.reviewed_at ?? undefined,
@@ -46,7 +58,7 @@ router.get('/me', verifySupabase, async (req, res) => {
       .from('kyc_reviews').select('*').eq('user_id', req.user.id).maybeSingle();
 
     if (!data) return res.json({ userId: req.user.id, status: 'NOT_SUBMITTED' });
-    return res.json(rowToKycDoc(data));
+    return res.json(await rowToKycDoc(data));
   } catch (err: any) { return serverError(res, err.message); }
 });
 
@@ -117,7 +129,7 @@ router.post(
       .single();
     if (dbErr || !record) return serverError(res, dbErr?.message ?? 'Failed to save KYC');
 
-    return res.status(201).json({ ...rowToKycDoc(record), storage: getStorageInfo() });
+    return res.status(201).json({ ...(await rowToKycDoc(record)), storage: getStorageInfo() });
   },
 );
 
@@ -189,7 +201,7 @@ router.patch(
       .single();
     if (dbErr2 || !record2) return serverError(res, dbErr2?.message ?? 'Failed to save KYC');
 
-    return res.json({ ...rowToKycDoc(record2), storage: getStorageInfo() });
+    return res.json({ ...(await rowToKycDoc(record2)), storage: getStorageInfo() });
   },
 );
 
@@ -240,7 +252,7 @@ router.delete('/documents/:field', verifySupabase, async (req, res) => {
       .single();
     if (error || !data) return serverError(res, error?.message ?? 'Failed to delete KYC document');
 
-    return res.json(rowToKycDoc(data));
+    return res.json(await rowToKycDoc(data));
   } catch (err: any) {
     return serverError(res, err.message);
   }

@@ -23,6 +23,16 @@ const SORT_COLUMN_MAP: Record<string, string> = {
   viewCount: 'view_count',
 };
 
+function attachMandateReviewMetadata(mandate: ReturnType<typeof toMandateDTO>, review?: any) {
+  return {
+    ...mandate,
+    moderationStatus: review?.status ?? 'PENDING',
+    moderationNote: review?.note ?? undefined,
+    moderationReviewedBy: review?.reviewed_by ?? undefined,
+    moderationReviewedAt: review?.reviewed_at ?? undefined,
+  };
+}
+
 // ---------------------------------------------------------------------
 // GET /api/mandates  — public, supports MandateFilters via query string
 // Returns: { items: Mandate[], meta: PaginationMeta }
@@ -51,13 +61,28 @@ router.get('/', async (req, res) => {
     const from = (pageNum - 1) * limitNum;
     const to = from + limitNum - 1;
 
-    // Show active mandates in the marketplace.
+    const { data: approvedReviews, error: approvedReviewsError } = await supabase
+      .from('mandate_reviews')
+      .select('mandate_id')
+      .eq('status', 'APPROVED');
+    if (approvedReviewsError) return badRequest(res, approvedReviewsError.message);
+
+    const approvedMandateIds = (approvedReviews ?? []).map((review) => review.mandate_id);
+    if (approvedMandateIds.length === 0) {
+      return res.json({
+        items: [],
+        meta: { total: 0, page: pageNum, limit: limitNum, totalPages: 1 },
+      });
+    }
+
+    // Show only active mandates that have been explicitly approved by admin.
     // Off-market here means "not listed on public internet portals",
     // not hidden from authenticated IPN network users.
     let query = supabase
       .from('mandates')
       .select('*', { count: 'exact' })
-      .eq('status', 'ACTIVE');
+      .eq('status', 'ACTIVE')
+      .in('id', approvedMandateIds);
 
     if (type) {
       if (!(MANDATE_TYPES as readonly string[]).includes(type)) {
@@ -90,7 +115,7 @@ router.get('/', async (req, res) => {
     const total = count ?? data?.length ?? 0;
 
     return res.json({
-      items: (data || []).map(toMandateDTO),
+      items: (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), { status: 'APPROVED' })),
       meta: {
         total,
         page: pageNum,
@@ -166,8 +191,15 @@ router.get('/my', verifySupabase, async (req, res) => {
 
     const total = count ?? data?.length ?? 0;
 
+    const ids = (data ?? []).map((mandate) => mandate.id);
+    const { data: reviewRows, error: reviewRowsError } = ids.length
+      ? await supabase.from('mandate_reviews').select('*').in('mandate_id', ids)
+      : { data: [], error: null };
+    if (reviewRowsError) return badRequest(res, reviewRowsError.message);
+    const reviewMap = new Map((reviewRows ?? []).map((review: any) => [review.mandate_id, review]));
+
     return res.json({
-      items: (data || []).map(toMandateDTO),
+      items: (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), reviewMap.get(row.id))),
       meta: {
         total,
         page: pageNum,
@@ -247,7 +279,17 @@ router.post('/', verifySupabase, async (req, res) => {
 
     if (error) return badRequest(res, error.message);
 
-    return res.status(201).json(toMandateDTO(data));
+    const { data: reviewRow, error: reviewError } = await supabase
+      .from('mandate_reviews')
+      .insert({ mandate_id: data.id, status: 'PENDING' })
+      .select('*')
+      .single();
+    if (reviewError || !reviewRow) {
+      await supabase.from('mandates').delete().eq('id', data.id);
+      return badRequest(res, reviewError?.message ?? 'Unable to create mandate review');
+    }
+
+    return res.status(201).json(attachMandateReviewMetadata(toMandateDTO(data), reviewRow));
   } catch (err: any) {
     return serverError(res, err.message);
   }
@@ -279,6 +321,8 @@ router.patch('/:id', verifySupabase, async (req, res) => {
       return badRequest(res, 'No valid fields provided to update');
     }
 
+    updatePayload.status = 'DRAFT';
+
     const { data, error } = await supabase
       .from('mandates')
       .update(updatePayload)
@@ -288,7 +332,24 @@ router.patch('/:id', verifySupabase, async (req, res) => {
 
     if (error) return badRequest(res, error.message);
 
-    return res.json(toMandateDTO(data));
+    const { data: reviewRow, error: reviewError } = await supabase
+      .from('mandate_reviews')
+      .upsert(
+        {
+          mandate_id: req.params.id,
+          status: 'PENDING',
+          note: null,
+          reviewed_by: null,
+          reviewed_at: null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'mandate_id' },
+      )
+      .select('*')
+      .single();
+    if (reviewError || !reviewRow) return badRequest(res, reviewError?.message ?? 'Unable to reset mandate review');
+
+    return res.json(attachMandateReviewMetadata(toMandateDTO(data), reviewRow));
   } catch (err: any) {
     return serverError(res, err.message);
   }

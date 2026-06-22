@@ -5,19 +5,32 @@ import { badRequest, notFound, serverError, unauthorized } from '../utils/apiErr
 import { toUserDTO } from '../models/profile';
 import { listIntros } from '../lib/runtimeStore';
 import { toMandateDTO } from '../models/mandate';
+import { createPrivateObjectViewUrl } from '../lib/objectStorage';
 
 // ─── DB row mappers ──────────────────────────────────────────────────────────
 
-function rowToKycDoc(row: any) {
+async function signDocumentUrl(url?: string | null) {
+  return url ? createPrivateObjectViewUrl(url) : undefined;
+}
+
+async function rowToKycDoc(row: any) {
+  const [panCard, gstCertificate, reraCertificate, incorporationCertificate, addressProof] = await Promise.all([
+    signDocumentUrl(row.pan_card),
+    signDocumentUrl(row.gst_certificate),
+    signDocumentUrl(row.rera_certificate),
+    signDocumentUrl(row.incorporation_certificate),
+    signDocumentUrl(row.address_proof),
+  ]);
+
   return {
     id: row.id,
     userId: row.user_id,
     status: row.status,
-    panCard: row.pan_card ?? undefined,
-    gstCertificate: row.gst_certificate ?? undefined,
-    reraCertificate: row.rera_certificate ?? undefined,
-    incorporationCertificate: row.incorporation_certificate ?? undefined,
-    addressProof: row.address_proof ?? undefined,
+    panCard,
+    gstCertificate,
+    reraCertificate,
+    incorporationCertificate,
+    addressProof,
     reviewNote: row.review_note ?? undefined,
     rejectionReason: row.rejection_reason ?? undefined,
     reviewedBy: row.reviewed_by ?? undefined,
@@ -81,7 +94,7 @@ router.get('/kyc/queue', verifySupabase, async (req, res) => {
     const { data, error } = await supabase
       .from('kyc_reviews').select('*').order('created_at', { ascending: false });
     if (error) return badRequest(res, error.message);
-    return res.json((data ?? []).map(rowToKycDoc));
+    return res.json(await Promise.all((data ?? []).map(rowToKycDoc)));
   } catch (err: any) { return serverError(res, err.message); }
 });
 
@@ -93,7 +106,7 @@ router.get('/kyc/:userId', verifySupabase, async (req, res) => {
     const { data, error } = await supabase
       .from('kyc_reviews').select('*').eq('user_id', req.params.userId).single();
     if (error || !data) return notFound(res, 'KYC document not found');
-    return res.json(rowToKycDoc(data));
+    return res.json(await rowToKycDoc(data));
   } catch (err: any) { return serverError(res, err.message); }
 });
 
@@ -138,7 +151,7 @@ router.patch('/kyc/update', verifySupabase, async (req, res) => {
       await supabase.from('profiles').update({ tier: 'VERIFIED' }).eq('id', body.userId);
     }
 
-    return res.json(rowToKycDoc(data));
+    return res.json(await rowToKycDoc(data));
   } catch (err: any) { return serverError(res, err.message); }
 });
 
@@ -269,7 +282,7 @@ router.get('/mandates', verifySupabase, async (req, res) => {
       const review = reviewMap.get(mandate.id);
       return {
         ...mandate,
-        moderationStatus: review?.status ?? (mandate.status === 'ACTIVE' ? 'APPROVED' : 'PENDING'),
+        moderationStatus: review?.status ?? 'PENDING',
         moderationNote: review?.note,
         moderationReviewedBy: review?.reviewedBy,
         moderationReviewedAt: review?.reviewedAt,
@@ -432,7 +445,7 @@ router.get('/verification/users/:userId', verifySupabase, async (req, res) => {
         introsReceived: intros.filter((i) => i.receiverId === profile.id).length,
         kycStatus: kycRow ? kycRow.status as any : undefined,
       }),
-      kyc: kycRow ? rowToKycDoc(kycRow) : null,
+      kyc: kycRow ? await rowToKycDoc(kycRow) : null,
       mandates: (mandateRows ?? []).map((row) => {
         const mandate = toMandateDTO(row);
         const review = reviewMap.get(mandate.id);
