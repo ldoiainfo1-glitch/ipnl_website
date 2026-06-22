@@ -18,6 +18,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import { kycApi } from '@/api/kyc.api';
 
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_KYC_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
@@ -220,6 +221,7 @@ export default function KycVerification() {
   });
 
   const [fileErrors, setFileErrors] = useState<Partial<Record<KycFileField, string>>>({});
+  const [documentViewUrls, setDocumentViewUrls] = useState<Partial<Record<KycFileField, string>>>({});
 
   const validateSelectedFile = (file: File | null): string | null => {
     if (!file) return null;
@@ -305,8 +307,56 @@ export default function KycVerification() {
     kycStatus.status === KycStatus.UNDER_REVIEW ||
     kycStatus.status === KycStatus.REJECTED;
 
+  useEffect(() => {
+    if (!kycStatus) {
+      setDocumentViewUrls({});
+      return;
+    }
+
+    const fields = KYC_DOCUMENTS.filter((doc) => Boolean(kycStatus[doc.field])).map((doc) => doc.field);
+    if (fields.length === 0) {
+      setDocumentViewUrls({});
+      return;
+    }
+
+    let isMounted = true;
+    Promise.all(
+      fields.map(async (field) => {
+        try {
+          const res = await kycApi.getKycDocumentViewUrl(field);
+          return [field, res.data.url] as const;
+        } catch {
+          return [field, kycStatus[field] as string] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (!isMounted) return;
+      setDocumentViewUrls(Object.fromEntries(entries) as Partial<Record<KycFileField, string>>);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    kycStatus?.panCard,
+    kycStatus?.gstCertificate,
+    kycStatus?.reraCertificate,
+    kycStatus?.incorporationCertificate,
+    kycStatus?.addressProof,
+  ]);
+
+  const handleViewDocument = async (field: KycFileField) => {
+    try {
+      const res = await kycApi.getKycDocumentViewUrl(field);
+      setDocumentViewUrls((current) => ({ ...current, [field]: res.data.url }));
+      window.open(res.data.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      alert('Unable to open this document. Please refresh the page and try again.');
+    }
+  };
+
   const uploadedDocuments = KYC_DOCUMENTS
-    .map((doc) => ({ ...doc, url: kycStatus?.[doc.field] as string | undefined }))
+    .map((doc) => ({ ...doc, url: documentViewUrls[doc.field] || (kycStatus?.[doc.field] as string | undefined) }))
     .filter((doc) => Boolean(doc.url));
 
   if (isLoading) {
@@ -410,42 +460,38 @@ export default function KycVerification() {
                       <p className="text-sm font-medium text-foreground">
                         {doc.label} {doc.required && <span className="text-destructive">*</span>}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[220px]">
-                        {doc.url}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Uploaded document</p>
                     </div>
                     <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   </div>
 
                   {doc.url && isImageUrl(doc.url) ? (
-                    <a href={doc.url} target="_blank" rel="noreferrer" className="block">
+                    <button type="button" onClick={() => handleViewDocument(doc.field)} className="block w-full">
                       <img
                         src={doc.url}
                         alt={`${doc.label} preview`}
                         className="h-28 w-full rounded-md border border-border object-contain bg-muted"
                       />
-                    </a>
+                    </button>
                   ) : (
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handleViewDocument(doc.field)}
                       className="flex h-28 items-center justify-center rounded-md border border-border bg-muted text-sm text-muted-foreground hover:text-foreground"
                     >
                       Open PDF / document
-                    </a>
+                    </button>
                   )}
 
                   <div className="flex items-center gap-2">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handleViewDocument(doc.field)}
                       className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:border-primary"
                     >
                       <ExternalLink className="w-3 h-3" />
                       View
-                    </a>
+                    </button>
                     {kycStatus?.status !== KycStatus.APPROVED && (
                       <button
                         type="button"

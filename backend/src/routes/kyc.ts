@@ -205,6 +205,32 @@ router.patch(
   },
 );
 
+router.get('/documents/:field/view-url', verifySupabase, async (req, res) => {
+  try {
+    if (!req.user) return unauthorized(res);
+    const field = req.params.field as KycDocumentField;
+    const column = KYC_DOCUMENT_COLUMNS[field];
+    if (!column) return badRequest(res, 'Invalid KYC document field');
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
+
+    const { data, error } = await supabase
+      .from('kyc_reviews')
+      .select(column)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+    if (error) return badRequest(res, error.message);
+
+    const rawUrl = data?.[column as keyof typeof data] as string | null | undefined;
+    if (!rawUrl) return badRequest(res, 'KYC document not found');
+
+    return res.json({ url: await createPrivateObjectViewUrl(rawUrl) });
+  } catch (err: any) {
+    return serverError(res, err.message);
+  }
+});
+
 router.delete('/documents/:field', verifySupabase, async (req, res) => {
   try {
     if (!req.user) return unauthorized(res);

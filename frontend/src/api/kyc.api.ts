@@ -49,4 +49,8 @@ export const kycApi = {
   deleteKycDocument: async (field: keyof SubmitKycRequest) => {
     return apiClient.delete<KycDocument>(`/kyc/documents/${field}`);
   },
+
+  getKycDocumentViewUrl: async (field: keyof SubmitKycRequest) => {
+    return apiClient.get<{ url: string }>(`/kyc/documents/${field}/view-url`);
+  },
 };

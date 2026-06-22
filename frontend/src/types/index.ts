@@ -186,6 +186,7 @@ export interface Mandate {
   updatedAt: Date;
 
   // Admin moderation metadata
+  ownerKycStatus?: KycStatus;
   moderationStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
   moderationNote?: string;
   moderationReviewedBy?: string;

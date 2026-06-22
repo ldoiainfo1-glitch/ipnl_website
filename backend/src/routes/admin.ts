@@ -40,6 +40,16 @@ async function rowToKycDoc(row: any) {
   };
 }
 
+const KYC_DOCUMENT_COLUMNS = {
+  panCard: 'pan_card',
+  gstCertificate: 'gst_certificate',
+  reraCertificate: 'rera_certificate',
+  incorporationCertificate: 'incorporation_certificate',
+  addressProof: 'address_proof',
+} as const;
+
+type KycDocumentField = keyof typeof KYC_DOCUMENT_COLUMNS;
+
 function rowToMandateReview(row: any) {
   return {
     id: row.id,
@@ -108,6 +118,32 @@ router.get('/kyc/:userId', verifySupabase, async (req, res) => {
     if (error || !data) return notFound(res, 'KYC document not found');
     return res.json(await rowToKycDoc(data));
   } catch (err: any) { return serverError(res, err.message); }
+});
+
+router.get('/kyc/:userId/documents/:field/view-url', verifySupabase, async (req, res) => {
+  try {
+    if (!ensureAdmin(req, res)) return;
+    const field = req.params.field as KycDocumentField;
+    const column = KYC_DOCUMENT_COLUMNS[field];
+    if (!column) return badRequest(res, 'Invalid KYC document field');
+
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
+
+    const { data, error } = await supabase
+      .from('kyc_reviews')
+      .select(column)
+      .eq('user_id', req.params.userId)
+      .maybeSingle();
+    if (error) return badRequest(res, error.message);
+
+    const rawUrl = data?.[column as keyof typeof data] as string | null | undefined;
+    if (!rawUrl) return badRequest(res, 'KYC document not found');
+
+    return res.json({ url: await createPrivateObjectViewUrl(rawUrl) });
+  } catch (err: any) {
+    return serverError(res, err.message);
+  }
 });
 
 router.patch('/kyc/update', verifySupabase, async (req, res) => {
@@ -272,16 +308,23 @@ router.get('/mandates', verifySupabase, async (req, res) => {
     if (error) return badRequest(res, error.message);
 
     const ids = (data ?? []).map((m) => m.id);
+    const userIds = Array.from(new Set((data ?? []).map((m) => m.user_id).filter(Boolean)));
     const { data: reviewRows } = ids.length
       ? await supabase.from('mandate_reviews').select('*').in('mandate_id', ids)
       : { data: [] };
     const reviewMap = new Map((reviewRows ?? []).map((r: any) => [r.mandate_id, rowToMandateReview(r)]));
+
+    const { data: kycRows } = userIds.length
+      ? await supabase.from('kyc_reviews').select('user_id, status').in('user_id', userIds)
+      : { data: [] };
+    const kycStatusMap = new Map((kycRows ?? []).map((row: any) => [row.user_id, row.status]));
 
     return res.json((data ?? []).map((row) => {
       const mandate = toMandateDTO(row);
       const review = reviewMap.get(mandate.id);
       return {
         ...mandate,
+        ownerKycStatus: kycStatusMap.get(row.user_id) ?? 'NOT_SUBMITTED',
         moderationStatus: review?.status ?? 'PENDING',
         moderationNote: review?.note,
         moderationReviewedBy: review?.reviewedBy,

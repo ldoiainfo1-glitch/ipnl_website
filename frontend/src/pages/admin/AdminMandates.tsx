@@ -8,6 +8,9 @@ import {
   Building2,
   CheckCircle,
   Clock,
+  EyeOff,
+  RotateCcw,
+  Trash2,
   XCircle,
   MapPin,
   TrendingUp,
@@ -37,6 +40,25 @@ export default function AdminMandates() {
     mutationFn: ({ id, status, note }: { id: string; status: 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'; note?: string }) =>
       adminApi.reviewMandate(id, { status, note }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
+    onError: (error: any) => {
+      alert(error?.detail || error?.message || 'Unable to update mandate review');
+    },
+  });
+
+  const hideMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => adminApi.hideMandate(id, reason),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
+    onError: (error: any) => {
+      alert(error?.detail || error?.message || 'Unable to hide mandate');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminApi.deleteMandate(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminMandates'] }),
+    onError: (error: any) => {
+      alert(error?.detail || error?.message || 'Unable to delete mandate');
+    },
   });
 
   const markUnderReview = (mandate: Mandate) => {
@@ -52,10 +74,110 @@ export default function AdminMandates() {
   };
 
   const approveMandate = (mandate: Mandate) => {
+    if (mandate.ownerKycStatus !== 'APPROVED') {
+      alert('Mandate can only be approved after the owner KYC is APPROVED. Review this user in Admin > KYC Queue first.');
+      return;
+    }
     reviewMutation.mutate({ id: mandate.id, status: 'APPROVED' });
   };
 
-  const isMutating = reviewMutation.isPending;
+  const hideMandate = (mandate: Mandate) => {
+    const reason = prompt(`Reason for hiding "${mandate.title}" from the marketplace:`, 'Hidden by admin');
+    if (!reason?.trim()) return;
+    hideMutation.mutate({ id: mandate.id, reason: reason.trim() });
+  };
+
+  const deleteMandate = (mandate: Mandate) => {
+    const confirmed = window.confirm(`Delete "${mandate.title}" permanently? This cannot be undone.`);
+    if (!confirmed) return;
+    deleteMutation.mutate(mandate.id);
+  };
+
+  const isMutating = reviewMutation.isPending || hideMutation.isPending || deleteMutation.isPending;
+
+  const renderActions = (mandate: Mandate) => {
+    if (mandate.moderationStatus === 'APPROVED') {
+      return (
+        <>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isMutating}
+            onClick={() => hideMandate(mandate)}
+            title="Hide from marketplace"
+          >
+            <EyeOff className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={isMutating}
+            onClick={() => deleteMandate(mandate)}
+            title="Delete mandate"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </>
+      );
+    }
+
+    if (mandate.moderationStatus === 'REJECTED') {
+      return (
+        <>
+          <Button
+            size="sm"
+            variant="default"
+            disabled={isMutating || mandate.ownerKycStatus !== 'APPROVED'}
+            onClick={() => approveMandate(mandate)}
+            title={mandate.ownerKycStatus === 'APPROVED' ? 'Restore and approve mandate' : 'Approve owner KYC before restoring this mandate'}
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={isMutating}
+            onClick={() => deleteMandate(mandate)}
+            title="Delete mandate"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isMutating}
+          onClick={() => markUnderReview(mandate)}
+          title="Mark in progress"
+        >
+          <Clock className="w-4 h-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="default"
+          disabled={isMutating || mandate.ownerKycStatus !== 'APPROVED'}
+          onClick={() => approveMandate(mandate)}
+          title={mandate.ownerKycStatus === 'APPROVED' ? 'Approve mandate' : 'Approve owner KYC before approving this mandate'}
+        >
+          <CheckCircle className="w-4 h-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          disabled={isMutating}
+          onClick={() => rejectMandate(mandate)}
+          title="Reject mandate"
+        >
+          <XCircle className="w-4 h-4" />
+        </Button>
+      </>
+    );
+  };
 
   const liveCount = mandates.filter((m) => m.moderationStatus === 'APPROVED').length;
   const pendingCount = mandates.filter(
@@ -128,6 +250,9 @@ export default function AdminMandates() {
                       <Badge variant={mandate.moderationStatus === 'APPROVED' ? 'success' : mandate.moderationStatus === 'REJECTED' ? 'destructive' : 'warning'}>
                         {mandate.moderationStatus ?? 'PENDING'}
                       </Badge>
+                      <Badge variant={mandate.ownerKycStatus === 'APPROVED' ? 'success' : 'outline'}>
+                        Owner KYC: {mandate.ownerKycStatus ?? 'NOT_SUBMITTED'}
+                      </Badge>
                       {mandate.isOffMarket && (
                         <Badge variant="outline">Off-Market</Badge>
                       )}
@@ -165,33 +290,7 @@ export default function AdminMandates() {
                   </div>
 
                   <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isMutating}
-                      onClick={() => markUnderReview(mandate)}
-                      title="Mark in progress"
-                    >
-                      <Clock className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      disabled={isMutating}
-                      onClick={() => approveMandate(mandate)}
-                      title="Approve mandate"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={isMutating}
-                      onClick={() => rejectMandate(mandate)}
-                      title="Reject mandate"
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
+                    {renderActions(mandate)}
                   </div>
                 </div>
               ))}

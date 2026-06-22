@@ -23,6 +23,10 @@ export const adminApi = {
     return apiClient.patch<KycDocument>('/admin/kyc/update', data);
   },
 
+  getKycDocumentViewUrl: async (userId: string, field: keyof Pick<KycDocument, 'panCard' | 'gstCertificate' | 'reraCertificate' | 'incorporationCertificate' | 'addressProof'>) => {
+    return apiClient.get<{ url: string }>(`/admin/kyc/${userId}/documents/${field}/view-url`);
+  },
+
   // User Management
   getUsers: async (filters?: UserFilters) => {
     return apiClient.get<User[]>('/admin/users', { params: filters });

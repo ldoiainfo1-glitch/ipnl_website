@@ -56,14 +56,25 @@ function RejectionModal({
   );
 }
 
+type KycDocumentField = 'panCard' | 'gstCertificate' | 'reraCertificate' | 'incorporationCertificate' | 'addressProof';
+
 function KycDocumentLinks({ doc }: { doc: KycDocument }) {
-  const fields: { label: string; url: string | undefined }[] = [
-    { label: 'PAN Card', url: doc.panCard },
-    { label: 'GST Certificate', url: doc.gstCertificate },
-    { label: 'RERA Certificate', url: doc.reraCertificate },
-    { label: 'Incorporation Cert.', url: doc.incorporationCertificate },
-    { label: 'Address Proof', url: doc.addressProof },
-  ].filter((f) => f.url);
+  const fields = ([
+    { field: 'panCard', label: 'PAN Card', url: doc.panCard },
+    { field: 'gstCertificate', label: 'GST Certificate', url: doc.gstCertificate },
+    { field: 'reraCertificate', label: 'RERA Certificate', url: doc.reraCertificate },
+    { field: 'incorporationCertificate', label: 'Incorporation Cert.', url: doc.incorporationCertificate },
+    { field: 'addressProof', label: 'Address Proof', url: doc.addressProof },
+  ] satisfies { field: KycDocumentField; label: string; url: string | undefined }[]).filter((f) => f.url);
+
+  const openDocument = async (field: KycDocumentField) => {
+    try {
+      const res = await adminApi.getKycDocumentViewUrl(doc.userId, field);
+      window.open(res.data.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      alert('Unable to open this document. Please refresh the page and try again.');
+    }
+  };
 
   if (fields.length === 0) {
     return <p className="text-xs text-muted-foreground italic">No documents uploaded</p>;
@@ -71,17 +82,16 @@ function KycDocumentLinks({ doc }: { doc: KycDocument }) {
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
-      {fields.map(({ label, url }) => (
-        <a
+      {fields.map(({ field, label }) => (
+        <button
+          type="button"
           key={label}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={() => openDocument(field)}
           className="flex items-center gap-1 text-xs text-primary hover:underline border border-border rounded px-2 py-1"
         >
           <FileText className="w-3 h-3" />
           {label}
-        </a>
+        </button>
       ))}
     </div>
   );
@@ -396,7 +406,16 @@ export default function KycQueue() {
                         Reason: {doc.rejectionReason}
                       </p>
                     )}
+                    <KycDocumentLinks doc={doc} />
                   </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSelectedUserId(doc.userId)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Review
+                  </Button>
                 </div>
               </div>
             ))}
