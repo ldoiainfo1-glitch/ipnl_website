@@ -51,14 +51,13 @@ router.get('/', async (req, res) => {
     const from = (pageNum - 1) * limitNum;
     const to = from + limitNum - 1;
 
-    // Only show publicly visible, active mandates in the open marketplace.
-    // is_off_market listings are excluded from this public endpoint —
-    // they're meant to be discovered via direct intro/invite flows only.
+    // Show active mandates in the marketplace.
+    // Off-market here means "not listed on public internet portals",
+    // not hidden from authenticated IPN network users.
     let query = supabase
       .from('mandates')
       .select('*', { count: 'exact' })
-      .eq('status', 'ACTIVE')
-      .eq('is_off_market', false);
+      .eq('status', 'ACTIVE');
 
     if (type) {
       if (!(MANDATE_TYPES as readonly string[]).includes(type)) {
@@ -238,6 +237,7 @@ router.post('/', verifySupabase, async (req, res) => {
       tags: Array.isArray(tags) ? tags : [],
       isOffMarket: !!isOffMarket,
     });
+    payload.status = 'DRAFT';
 
     const { data, error } = await supabase
       .from('mandates')

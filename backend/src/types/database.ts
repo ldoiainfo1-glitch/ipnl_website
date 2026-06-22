@@ -24,6 +24,8 @@ export interface Database {
           company_name: string | null;
           role: string;
           tier: string;
+          status: string;
+          kyc_status: string;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +35,8 @@ export interface Database {
           company_name: string | null;
           role: string;
           tier: string;
+          status: string;
+          kyc_status: string;
           created_at: string;
           updated_at: string;
         }> & { id: string };
@@ -42,6 +46,8 @@ export interface Database {
           company_name: string | null;
           role: string;
           tier: string;
+          status: string;
+          kyc_status: string;
           created_at: string;
           updated_at: string;
         }>;
@@ -197,6 +203,108 @@ export interface Database {
           sender_id: string;
           content: string | null;
           created_at: string;
+        }>;
+        Relationships: [];
+      };
+      kyc_reviews: {
+        Row: {
+          id: string;
+          user_id: string;
+          status: 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          pan_card: string | null;
+          gst_certificate: string | null;
+          rera_certificate: string | null;
+          incorporation_certificate: string | null;
+          address_proof: string | null;
+          review_note: string | null;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<{
+          id: string;
+          user_id: string;
+          status: 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          pan_card: string | null;
+          gst_certificate: string | null;
+          rera_certificate: string | null;
+          incorporation_certificate: string | null;
+          address_proof: string | null;
+          review_note: string | null;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        }> & { user_id: string };
+        Update: Partial<{
+          status: 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          pan_card: string | null;
+          gst_certificate: string | null;
+          rera_certificate: string | null;
+          incorporation_certificate: string | null;
+          address_proof: string | null;
+          review_note: string | null;
+          rejection_reason: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          updated_at: string;
+        }>;
+        Relationships: [];
+      };
+      mandate_reviews: {
+        Row: {
+          id: string;
+          mandate_id: string;
+          status: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<{
+          id: string;
+          mandate_id: string;
+          status: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        }> & { mandate_id: string };
+        Update: Partial<{
+          status: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+          note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          updated_at: string;
+        }>;
+        Relationships: [];
+      };
+      audit_log: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action: string;
+          entity_type: string;
+          entity_id: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: Partial<{
+          id: string;
+          admin_id: string;
+          action: string;
+          entity_type: string;
+          entity_id: string;
+          note: string | null;
+          created_at: string;
+        }> & { admin_id: string; action: string; entity_type: string; entity_id: string };
+        Update: Partial<{
+          note: string | null;
         }>;
         Relationships: [];
       };
