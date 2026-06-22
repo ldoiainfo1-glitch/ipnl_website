@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/api/profile.api';
 import { useAuthStore } from '@/store/authStore';
@@ -17,6 +17,20 @@ export const useMyProfile = () => {
     },
     enabled: !!storeUser,
   });
+
+  useEffect(() => {
+    if (!profile || !storeUser) return;
+    if (storeUser.role === profile.role && storeUser.tier === profile.tier) return;
+
+    useAuthStore.setState({
+      user: {
+        ...storeUser,
+        role: profile.role,
+        tier: profile.tier,
+        companyName: profile.companyName,
+      },
+    });
+  }, [profile, storeUser]);
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateProfileRequest) => profileApi.updateMyProfile(data),

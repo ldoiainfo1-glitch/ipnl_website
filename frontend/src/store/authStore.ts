@@ -4,6 +4,16 @@ import { AuthState, RegisterRequest } from '@/types';
 import { authApi } from '@/api/auth.api';
 import supabase from '@/lib/supabase';
 
+function normalizeAuthUser(user: any) {
+  const role = String(user?.role || user?.user_metadata?.role || user?.app_metadata?.role || '').toUpperCase();
+  return {
+    ...user,
+    role: role || user?.role,
+    companyName: user?.companyName || user?.user_metadata?.companyName || '',
+    tier: user?.tier || 'OBSERVER',
+  };
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -17,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
           if (supabase) {
             const result = await supabase.auth.signInWithPassword({ email, password });
             if (result.error) throw result.error;
-            const user = result.data.user as any;
+            const user = normalizeAuthUser(result.data.user as any);
             const token = result.data.session?.access_token;
 
             set({ user, token, isAuthenticated: !!token });
@@ -49,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
           if (supabase) {
             const result = await supabase.auth.signUp({ email: data.email, password: (data as any).password, options: { data: { companyName: data.companyName } } });
             if (result.error) throw result.error;
-            const user = result.data.user as any;
+            const user = normalizeAuthUser(result.data.user as any);
             const token = result.data.session?.access_token;
             set({ user, token, isAuthenticated: !!token });
             if (token) localStorage.setItem('ipn_token', token);
@@ -95,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
             }
             const signIn = await supabase.auth.signInWithPassword({ email: creds.email, password: creds.password });
             if (signIn.error) throw signIn.error;
-            const user = signIn.data.user as any;
+            const user = normalizeAuthUser(signIn.data.user as any);
             const token = signIn.data.session?.access_token;
             set({ user, token, isAuthenticated: !!token });
             if (token) localStorage.setItem('ipn_token', token);

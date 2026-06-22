@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { FEATURES } from '@/lib/features';
 import {
   Building2,
   MessageSquare,
@@ -19,7 +20,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { myMandates, isLoadingMyMandates } = useMandates();
-  const { sentIntros, receivedIntros, quotaStatus } = useIntros();
+  const { sentIntros, receivedIntros, quotaStatus } = useIntros(FEATURES.introductions);
 
   const activeMandates = myMandates.filter((m) => m.status === 'ACTIVE');
   const quotaRemaining = (quotaStatus?.remaining || 0);
@@ -37,7 +38,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${FEATURES.introductions ? 'md:grid-cols-4' : 'md:grid-cols-2'}`}>
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -50,29 +51,33 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Intros Sent</p>
-                <p className="text-3xl font-bold">{sentIntros.length}</p>
-              </div>
-              <Send className="w-10 h-10 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
+        {FEATURES.introductions && (
+          <>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Intros Sent</p>
+                    <p className="text-3xl font-bold">{sentIntros.length}</p>
+                  </div>
+                  <Send className="w-10 h-10 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Intros Received</p>
-                <p className="text-3xl font-bold">{receivedIntros.length}</p>
-              </div>
-              <Inbox className="w-10 h-10 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Intros Received</p>
+                    <p className="text-3xl font-bold">{receivedIntros.length}</p>
+                  </div>
+                  <Inbox className="w-10 h-10 text-primary" />
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         <Card>
           <CardContent className="p-6">
@@ -171,7 +176,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Recent Introductions */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {FEATURES.introductions && <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Recent Intros Received</CardTitle>
@@ -249,7 +254,7 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </div>}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard,
   Building2,
@@ -17,17 +17,22 @@ import {
   ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
+import { useMyProfile } from '@/hooks/useProfile';
+import { FEATURES } from '@/lib/features';
 
 export default function Sidebar() {
   const location = useLocation();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
+  const { profile } = useMyProfile();
+  const isAdmin = useAdminAccess();
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: Building2, label: 'Marketplace', href: '/marketplace' },
     { icon: Users, label: 'Members', href: '/members' },
     { icon: PlusCircle, label: 'Post Mandate', href: '/post-mandate' },
-    { icon: Handshake, label: 'Introductions', href: '/intros' },
+    ...(FEATURES.introductions ? [{ icon: Handshake, label: 'Introductions', href: '/intros' }] : []),
     { icon: MessageSquare, label: 'Messages', href: '/messages' },
     { icon: Trophy, label: 'Ranking', href: '/leaderboard' },
     { icon: Bell, label: 'Notifications', href: '/notifications' },
@@ -86,7 +91,7 @@ export default function Sidebar() {
         ))}
 
         {/* Admin Section */}
-        {user?.role === 'ADMIN' && (
+        {isAdmin && (
           <>
             <div className="pt-4 pb-2">
               <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -116,7 +121,7 @@ export default function Sidebar() {
       <div className="p-4 border-t border-border">
         <div className="bg-secondary rounded-lg p-3">
           <p className="text-xs text-muted-foreground mb-1">Current Tier</p>
-          <p className="text-sm font-bold text-primary">{user?.tier || 'OBSERVER'}</p>
+          <p className="text-sm font-bold text-primary">{profile?.tier || user?.tier || 'OBSERVER'}</p>
         </div>
       </div>
     </aside>

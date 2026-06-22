@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { introsApi } from '@/api/intros.api';
 import { SendIntroRequest, IntroStatus } from '@/types';
 
-export const useIntros = () => {
+export const useIntros = (enabled = true) => {
   const queryClient = useQueryClient();
 
   // Get sent intros
@@ -12,6 +12,7 @@ export const useIntros = () => {
       const response = await introsApi.getMyIntros('sent');
       return response.data;
     },
+    enabled,
   });
 
   // Get received intros
@@ -21,6 +22,7 @@ export const useIntros = () => {
       const response = await introsApi.getMyIntros('received');
       return response.data;
     },
+    enabled,
   });
 
   // Get quota status
@@ -30,6 +32,7 @@ export const useIntros = () => {
       const response = await introsApi.getQuotaStatus();
       return response.data;
     },
+    enabled,
   });
 
   // Send intro mutation

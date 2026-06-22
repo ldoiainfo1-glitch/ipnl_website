@@ -36,11 +36,14 @@ import Contact from './pages/static/Contact';
 import Pricing from './pages/Pricing';
 
 // Hooks & Store
-import { useAuthStore } from './store/authStore';
+import { useAuth } from './hooks/useAuth';
 import { useSocket } from './hooks/useSocket';
+import { useAdminAccess } from './hooks/useAdminAccess';
+import { FEATURES } from './lib/features';
 
 function App() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuth();
+  const isAdmin = useAdminAccess();
   useSocket(); // Initialize Socket.io connection
 
   return (
@@ -78,10 +81,10 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/members" element={<MemberDirectory />} />
           <Route path="/members/:id" element={<UserProfile />} />
-          <Route path="/intros" element={<Intros />} />
+          {FEATURES.introductions && <Route path="/intros" element={<Intros />} />}
 
           {/* Admin Routes */}
-          {user?.role === 'ADMIN' && (
+          {isAdmin && (
             <>
               <Route path="/admin/kyc-queue" element={<KycQueue />} />
               <Route path="/admin/mandates" element={<AdminMandates />} />
