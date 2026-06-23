@@ -128,37 +128,41 @@ router.patch('/me', verifySupabase, async (req, res) => {
 });
 
 router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandler, async (req: express.Request, res: express.Response) => {
-  if (!req.user) return unauthorized(res);
-  if (!req.file) return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
+  try {
+    if (!req.user) return unauthorized(res);
+    if (!req.file) return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
 
-  const ext = req.file.mimetype === 'image/png'
-    ? 'png'
-    : req.file.mimetype === 'image/webp'
-      ? 'webp'
-      : 'jpg';
+    const ext = req.file.mimetype === 'image/png'
+      ? 'png'
+      : req.file.mimetype === 'image/webp'
+        ? 'webp'
+        : 'jpg';
 
-  const path = createUploadPath('logos', req.user.id, ext);
-  const uploaded = await uploadObject({
-    path,
-    body: req.file.buffer,
-    contentType: req.file.mimetype,
-  });
+    const path = createUploadPath('logos', req.user.id, ext);
+    const uploaded = await uploadObject({
+      path,
+      body: req.file.buffer,
+      contentType: req.file.mimetype,
+    });
 
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return serverError(res, 'Supabase not configured');
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ logo: uploaded.url, updated_at: new Date().toISOString() })
-    .eq('id', req.user.id)
-    .select('logo')
-    .single();
-  if (error || !data) return badRequest(res, error?.message ?? 'Unable to save logo');
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ logo: uploaded.url, updated_at: new Date().toISOString() })
+      .eq('id', req.user.id)
+      .select('logo')
+      .single();
+    if (error || !data) return badRequest(res, error?.message ?? 'Unable to save logo');
 
-  return res.json({
-    logo: data.logo,
-    storage: getStorageInfo(),
-  });
+    return res.json({
+      logo: data.logo,
+      storage: getStorageInfo(),
+    });
+  } catch (err: any) {
+    return serverError(res, err?.message ?? 'Unable to upload logo');
+  }
 });
 
 router.get('/members', verifySupabase, async (req, res) => {
