@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin.api';
-import { KycDocument, User, UserStatus, UserTier, UserFilters } from '@/types';
+import { KycDocument, KycStatus, User, UserStatus, UserTier, UserFilters } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShieldCheck, Ban, CheckCircle, Building2, Eye, FileText } from 'lucide-react';
+import { Search, ShieldCheck, Ban, CheckCircle, Building2, Eye, FileText, X, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 
 type KycDocumentField = 'panCard' | 'gstCertificate' | 'reraCertificate' | 'incorporationCertificate' | 'addressProof';
@@ -63,11 +64,21 @@ const TIER_VARIANT: Record<UserTier, string> = {
   [UserTier.ENTERPRISE]: 'success',
 };
 
+const KYC_VARIANT: Record<KycStatus, string> = {
+  [KycStatus.NOT_SUBMITTED]: 'outline',
+  [KycStatus.SUBMITTED]: 'secondary',
+  [KycStatus.UNDER_REVIEW]: 'warning',
+  [KycStatus.APPROVED]: 'success',
+  [KycStatus.REJECTED]: 'destructive',
+};
+
 export default function AdminUsers() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<UserFilters>({});
   const [search, setSearch] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [dangerUser, setDangerUser] = useState<User | null>(null);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['adminUsers', filters, search],
@@ -97,36 +108,140 @@ export default function AdminUsers() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminUsers'] }),
   });
 
-  const upgradeTierMutation = useMutation({
-    mutationFn: ({ id, tier }: { id: string; tier: string }) =>
-      adminApi.updateUserTier(id, tier),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminUsers'] }),
+  const deleteMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => adminApi.deleteUser(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setDangerUser(null);
+    },
+    onError: (error: any) => {
+      alert(error?.detail || error?.message || 'Unable to delete user');
+    },
   });
 
   const handleSuspend = (user: User) => {
     const reason = prompt(`Reason for suspending "${user.companyName}":`);
     if (reason?.trim()) {
       suspendMutation.mutate({ id: user.id, reason: reason.trim() });
+      setDangerUser(null);
     }
   };
 
-  const handleUpgrade = (user: User) => {
-    const tier = prompt(
-      `Set tier for "${user.companyName}" (OBSERVER / VERIFIED / ENTERPRISE):`,
-      user.tier
-    );
-    if (tier && ['OBSERVER', 'VERIFIED', 'ENTERPRISE'].includes(tier.toUpperCase())) {
-      upgradeTierMutation.mutate({ id: user.id, tier: tier.toUpperCase() });
-    }
+  const handlePermanentDelete = (user: User) => {
+    const typed = prompt(`Type DELETE to permanently delete "${user.companyName}" from the database. This cannot be undone.`);
+    if (typed !== 'DELETE') return;
+    const reason = prompt('Optional audit note for this deletion:', 'Deleted by admin') ?? '';
+    deleteMutation.mutate({ id: user.id, reason: reason.trim() });
   };
 
   const isMutating =
     suspendMutation.isPending ||
     activateMutation.isPending ||
-    upgradeTierMutation.isPending;
+    deleteMutation.isPending;
 
   return (
     <div className="space-y-6">
+      {selectedUserId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <Card className="w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border">
+              <CardTitle>KYC Dossier</CardTitle>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedUserId(null)}
+                title="Close KYC dossier"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4 overflow-y-auto p-5">
+              {isLoadingSelectedUser && (
+                <p className="text-sm text-muted-foreground">Loading KYC dossier...</p>
+              )}
+              {selectedUserDetail && (
+                <>
+                  <div className="border border-border rounded-md p-4 space-y-1">
+                    <p className="font-medium text-sm">{selectedUserDetail.user.companyName}</p>
+                    <p className="text-xs text-muted-foreground">{selectedUserDetail.user.email}</p>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <Badge variant={KYC_VARIANT[selectedUserDetail.user.kycStatus] as any}>
+                        KYC: {selectedUserDetail.user.kycStatus.replace(/_/g, ' ')}
+                      </Badge>
+                      <Badge variant={STATUS_VARIANT[selectedUserDetail.user.status] as any}>
+                        Account: {selectedUserDetail.user.status.replace(/_/g, ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                  {selectedUserDetail.kyc ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium uppercase text-muted-foreground">Uploaded Documents</p>
+                      <KycDocumentLinks doc={selectedUserDetail.kyc} />
+                      {selectedUserDetail.kyc.reviewNote && (
+                        <p className="text-xs text-amber-600">Review note: {selectedUserDetail.kyc.reviewNote}</p>
+                      )}
+                      {selectedUserDetail.kyc.rejectionReason && (
+                        <p className="text-xs text-destructive">Rejection reason: {selectedUserDetail.kyc.rejectionReason}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No KYC record yet.</p>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {dangerUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-border">
+              <CardTitle>Account Action</CardTitle>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setDangerUser(null)} title="Close">
+                <X className="w-4 h-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
+              <div className="space-y-1">
+                <p className="font-medium">{dangerUser.companyName}</p>
+                <p className="text-sm text-muted-foreground">{dangerUser.email}</p>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {dangerUser.status === UserStatus.SUSPENDED ? (
+                  <Button
+                    type="button"
+                    variant="default"
+                    disabled={isMutating}
+                    onClick={() => {
+                      activateMutation.mutate(dangerUser.id);
+                      setDangerUser(null);
+                    }}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Activate Account
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" disabled={isMutating} onClick={() => handleSuspend(dangerUser)}>
+                    <Ban className="w-4 h-4 mr-2" />
+                    Suspend Account
+                  </Button>
+                )}
+                <Button type="button" variant="destructive" disabled={isMutating} onClick={() => handlePermanentDelete(dangerUser)}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Permanently
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Suspend keeps the user record and blocks activity. Delete permanently removes the auth user and related profile data.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold">Manage Users</h1>
         <p className="text-muted-foreground">View and manage all platform users</p>
@@ -175,8 +290,7 @@ export default function AdminUsers() {
       </Card>
 
       {/* Users Table */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-      <Card className="xl:col-span-2">
+      <Card>
         <CardHeader>
           <CardTitle>
             All Users{' '}
@@ -193,130 +307,84 @@ export default function AdminUsers() {
           ) : users.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No users found</p>
           ) : (
-            <div className="space-y-3">
-              {users.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center gap-4 p-4 border border-border rounded-lg"
-                >
-                  {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 overflow-hidden">
-                    {user.logo ? (
-                      <img src={user.logo} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Building2 className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold truncate">{user.companyName}</span>
-                      {user.kycStatus === 'APPROVED' && (
-                        <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.role.replace(/_/g, ' ')} · Joined {formatDate(user.createdAt)}
-                    </p>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-                    <Badge variant={TIER_VARIANT[user.tier] as any}>{user.tier}</Badge>
-                    <Badge variant={STATUS_VARIANT[user.status] as any}>
-                      {user.status.replace(/_/g, ' ')}
-                    </Badge>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isMutating}
-                      onClick={() => setSelectedUserId(user.id)}
-                      title="View KYC documents"
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      KYC
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isMutating}
-                      onClick={() => handleUpgrade(user)}
-                      title="Change tier"
-                    >
-                      Tier
-                    </Button>
-                    {user.status === UserStatus.SUSPENDED ? (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        disabled={isMutating}
-                        onClick={() => activateMutation.mutate(user.id)}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Activate
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={isMutating}
-                        onClick={() => handleSuspend(user)}
-                      >
-                        <Ban className="w-4 h-4 mr-1" />
-                        Suspend
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div>
+              <table className="w-full table-fixed text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="w-[27%] py-3 pr-3 text-left font-medium">Company</th>
+                    <th className="w-[12%] py-3 px-2 text-left font-medium">Role</th>
+                    <th className="w-[10%] py-3 px-2 text-left font-medium">Tier</th>
+                    <th className="w-[13%] py-3 px-2 text-left font-medium">KYC</th>
+                    <th className="w-[16%] py-3 px-2 text-left font-medium">Account</th>
+                    <th className="w-[10%] py-3 px-2 text-left font-medium">Joined</th>
+                    <th className="w-[12%] py-3 pl-2 text-right font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-b border-border last:border-0 align-middle">
+                      <td className="py-4 pr-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 overflow-hidden">
+                            {user.logo ? (
+                              <img src={user.logo} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Building2 className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/members/${user.id}`)}
+                                className="font-semibold truncate text-left hover:text-primary hover:underline"
+                                title="Open member profile"
+                              >
+                                {user.companyName}
+                              </button>
+                              {user.kycStatus === 'APPROVED' && (
+                                <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-2 text-muted-foreground">
+                        {user.role.replace(/_/g, ' ')}
+                      </td>
+                      <td className="py-4 px-2">
+                        <Badge variant={TIER_VARIANT[user.tier] as any} className="whitespace-nowrap">{user.tier}</Badge>
+                      </td>
+                      <td className="py-4 px-2">
+                        <Badge variant={KYC_VARIANT[user.kycStatus] as any} className="whitespace-nowrap">{user.kycStatus.replace(/_/g, ' ')}</Badge>
+                      </td>
+                      <td className="py-4 px-2">
+                        <Badge variant={STATUS_VARIANT[user.status] as any} className="whitespace-nowrap">{user.status.replace(/_/g, ' ')}</Badge>
+                      </td>
+                      <td className="py-4 px-2 text-muted-foreground">
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td className="py-4 pl-2">
+                        <div className="flex justify-end gap-1">
+                          <Button size="sm" variant="outline" disabled={isMutating} onClick={() => setSelectedUserId(user.id)} title="View KYC documents">
+                            <Eye className="w-4 h-4 mr-1" />
+                            KYC
+                          </Button>
+                          <Button size="sm" variant="destructive" disabled={isMutating} onClick={() => setDangerUser(user)} title="Suspend or delete user">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card className="xl:sticky xl:top-24">
-        <CardHeader>
-          <CardTitle>KYC Dossier</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {!selectedUserId && (
-            <p className="text-sm text-muted-foreground">Select KYC on any user to view uploaded documents.</p>
-          )}
-          {isLoadingSelectedUser && (
-            <p className="text-sm text-muted-foreground">Loading KYC dossier...</p>
-          )}
-          {selectedUserDetail && (
-            <>
-              <div className="border border-border rounded-md p-3 space-y-1">
-                <p className="font-medium text-sm">{selectedUserDetail.user.companyName}</p>
-                <p className="text-xs text-muted-foreground">{selectedUserDetail.user.email}</p>
-                <p className="text-xs text-muted-foreground">KYC: {selectedUserDetail.user.kycStatus}</p>
-              </div>
-              {selectedUserDetail.kyc ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase text-muted-foreground">Uploaded Documents</p>
-                  <KycDocumentLinks doc={selectedUserDetail.kyc} />
-                  {selectedUserDetail.kyc.reviewNote && (
-                    <p className="text-xs text-amber-600">Review note: {selectedUserDetail.kyc.reviewNote}</p>
-                  )}
-                  {selectedUserDetail.kyc.rejectionReason && (
-                    <p className="text-xs text-destructive">Rejection reason: {selectedUserDetail.kyc.rejectionReason}</p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">No KYC record yet.</p>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-      </div>
     </div>
   );
 }

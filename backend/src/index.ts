@@ -13,6 +13,7 @@ import leaderboardRouter from './routes/leaderboard';
 import kycRouter from './routes/kyc';
 import adminRouter from './routes/admin';
 import billingRouter from './routes/billing';
+import reputationRouter from './routes/reputation';
 
 const app = express();
 app.use(cors());
@@ -28,6 +29,7 @@ app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/billing', billingRouter);
+app.use('/api/reputation', reputationRouter);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 

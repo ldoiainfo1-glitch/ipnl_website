@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { adminApi } from '@/api/admin.api';
 import { Mandate, MandateStatus } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ const STATUS_VARIANT: Record<MandateStatus, string> = {
 
 export default function AdminMandates() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: mandates = [], isLoading } = useQuery({
     queryKey: ['adminMandates'],
@@ -103,7 +105,10 @@ export default function AdminMandates() {
             size="sm"
             variant="outline"
             disabled={isMutating}
-            onClick={() => hideMandate(mandate)}
+            onClick={(event) => {
+              event.stopPropagation();
+              hideMandate(mandate);
+            }}
             title="Hide from marketplace"
           >
             <EyeOff className="w-4 h-4" />
@@ -112,7 +117,10 @@ export default function AdminMandates() {
             size="sm"
             variant="destructive"
             disabled={isMutating}
-            onClick={() => deleteMandate(mandate)}
+            onClick={(event) => {
+              event.stopPropagation();
+              deleteMandate(mandate);
+            }}
             title="Delete mandate"
           >
             <Trash2 className="w-4 h-4" />
@@ -128,7 +136,10 @@ export default function AdminMandates() {
             size="sm"
             variant="default"
             disabled={isMutating || mandate.ownerKycStatus !== 'APPROVED'}
-            onClick={() => approveMandate(mandate)}
+            onClick={(event) => {
+              event.stopPropagation();
+              approveMandate(mandate);
+            }}
             title={mandate.ownerKycStatus === 'APPROVED' ? 'Restore and approve mandate' : 'Approve owner KYC before restoring this mandate'}
           >
             <RotateCcw className="w-4 h-4" />
@@ -137,7 +148,10 @@ export default function AdminMandates() {
             size="sm"
             variant="destructive"
             disabled={isMutating}
-            onClick={() => deleteMandate(mandate)}
+            onClick={(event) => {
+              event.stopPropagation();
+              deleteMandate(mandate);
+            }}
             title="Delete mandate"
           >
             <Trash2 className="w-4 h-4" />
@@ -152,7 +166,10 @@ export default function AdminMandates() {
           size="sm"
           variant="outline"
           disabled={isMutating}
-          onClick={() => markUnderReview(mandate)}
+          onClick={(event) => {
+            event.stopPropagation();
+            markUnderReview(mandate);
+          }}
           title="Mark in progress"
         >
           <Clock className="w-4 h-4" />
@@ -161,7 +178,10 @@ export default function AdminMandates() {
           size="sm"
           variant="default"
           disabled={isMutating || mandate.ownerKycStatus !== 'APPROVED'}
-          onClick={() => approveMandate(mandate)}
+          onClick={(event) => {
+            event.stopPropagation();
+            approveMandate(mandate);
+          }}
           title={mandate.ownerKycStatus === 'APPROVED' ? 'Approve mandate' : 'Approve owner KYC before approving this mandate'}
         >
           <CheckCircle className="w-4 h-4" />
@@ -170,7 +190,10 @@ export default function AdminMandates() {
           size="sm"
           variant="destructive"
           disabled={isMutating}
-          onClick={() => rejectMandate(mandate)}
+          onClick={(event) => {
+            event.stopPropagation();
+            rejectMandate(mandate);
+          }}
           title="Reject mandate"
         >
           <XCircle className="w-4 h-4" />
@@ -237,7 +260,16 @@ export default function AdminMandates() {
               {mandates.map((mandate) => (
                 <div
                   key={mandate.id}
-                  className="flex items-start gap-4 p-4 border border-border rounded-lg"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/mandates/${mandate.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(`/mandates/${mandate.id}`);
+                    }
+                  }}
+                  className="flex items-start gap-4 p-4 border border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -257,7 +289,25 @@ export default function AdminMandates() {
                         <Badge variant="outline">Off-Market</Badge>
                       )}
                     </div>
-                    <h3 className="font-semibold truncate">{mandate.title}</h3>
+                    <h3 className="font-semibold truncate hover:text-primary">{mandate.title}</h3>
+                    <div className="flex items-center gap-2 text-sm mt-1">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (mandate.user?.id) navigate(`/members/${mandate.user.id}`);
+                        }}
+                        className="font-medium hover:text-primary hover:underline disabled:hover:no-underline"
+                        disabled={!mandate.user?.id}
+                        title="Open owner profile"
+                      >
+                        {mandate.user?.companyName || 'Unknown company'}
+                      </button>
+                      {mandate.user?.email && (
+                        <span className="text-xs text-muted-foreground">{mandate.user.email}</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1 flex-wrap">
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
@@ -270,11 +320,6 @@ export default function AdminMandates() {
                       </span>
                       <span>{formatRelativeTime(mandate.createdAt)}</span>
                     </div>
-                    {mandate.user && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        By: {mandate.user.companyName}
-                      </p>
-                    )}
                     {mandate.moderationNote && (
                       <p className="text-xs text-muted-foreground mt-1">Review note: {mandate.moderationNote}</p>
                     )}

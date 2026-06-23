@@ -79,8 +79,15 @@ BEGIN
   -- When approved, also upgrade tier
   IF NEW.status = 'APPROVED' THEN
     UPDATE public.profiles
-       SET tier = 'VERIFIED', updated_at = now()
+       SET tier = 'VERIFIED', status = 'APPROVED', updated_at = now()
      WHERE id = NEW.user_id AND tier = 'OBSERVER';
+     UPDATE public.profiles
+       SET status = 'APPROVED', updated_at = now()
+      WHERE id = NEW.user_id AND tier <> 'OBSERVER';
+    ELSIF NEW.status = 'REJECTED' THEN
+     UPDATE public.profiles
+       SET status = 'REJECTED', updated_at = now()
+      WHERE id = NEW.user_id AND status <> 'SUSPENDED';
   END IF;
   RETURN NEW;
 END;
@@ -90,6 +97,13 @@ DROP TRIGGER IF EXISTS trigger_sync_kyc_status ON public.kyc_reviews;
 CREATE TRIGGER trigger_sync_kyc_status
 AFTER INSERT OR UPDATE OF status ON public.kyc_reviews
 FOR EACH ROW EXECUTE FUNCTION public.sync_kyc_status_to_profile();
+
+UPDATE public.profiles p
+  SET status = 'APPROVED', tier = CASE WHEN p.tier = 'OBSERVER' THEN 'VERIFIED' ELSE p.tier END, updated_at = now()
+  FROM public.kyc_reviews kr
+ WHERE kr.user_id = p.id
+  AND kr.status = 'APPROVED'
+  AND p.status <> 'SUSPENDED';
 
 DROP TRIGGER IF EXISTS set_updated_at_on_kyc_reviews ON public.kyc_reviews;
 CREATE TRIGGER set_updated_at_on_kyc_reviews

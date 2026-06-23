@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin.api';
 import { AuditEvent } from '@/types';
@@ -32,6 +33,7 @@ const ACTION_META: Record<
   MANDATE_DELETED: { label: 'Mandate Deleted', icon: Trash2, colorClass: 'text-red-700 bg-red-100 border-red-300' },
   USER_SUSPENDED: { label: 'User Suspended', icon: UserX, colorClass: 'text-red-500 bg-red-50 border-red-200' },
   USER_ACTIVATED: { label: 'User Activated', icon: UserCheck, colorClass: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
+  USER_DELETED: { label: 'User Deleted', icon: Trash2, colorClass: 'text-red-700 bg-red-100 border-red-300' },
   TIER_CHANGED: { label: 'Tier Changed', icon: RefreshCw, colorClass: 'text-purple-500 bg-purple-50 border-purple-200' },
 };
 
@@ -59,11 +61,47 @@ function formatAbsolute(dateStr: string) {
   });
 }
 
+function getTargetDescription(event: AuditEvent) {
+  const company = event.targetCompanyName || event.targetUser?.companyName;
+  const email = event.targetEmail || event.targetUser?.email;
+  const mandate = event.targetMandateTitle;
+
+  if (event.action.startsWith('KYC_')) {
+    return company ? `For ${company}${email ? ` (${email})` : ''}` : `For KYC record ${event.entityId.slice(0, 8)}...`;
+  }
+
+  if (event.action.startsWith('MANDATE_')) {
+    if (mandate && company) return `${mandate} by ${company}`;
+    if (mandate) return mandate;
+    if (company) return `Mandate owner: ${company}`;
+    return `Mandate ${event.entityId.slice(0, 8)}...`;
+  }
+
+  if (event.action.startsWith('USER_') || event.action === 'TIER_CHANGED') {
+    return company ? `${company}${email ? ` (${email})` : ''}` : `User ${event.entityId.slice(0, 8)}...`;
+  }
+
+  return company ?? `${event.entityType} ${event.entityId.slice(0, 8)}...`;
+}
+
+function getTargetPath(event: AuditEvent) {
+  if (event.action.startsWith('KYC_') || event.action.startsWith('USER_') || event.action === 'TIER_CHANGED') {
+    return event.targetUser?.id ? `/members/${event.targetUser.id}` : null;
+  }
+
+  if (event.action.startsWith('MANDATE_') && event.action !== 'MANDATE_DELETED') {
+    return `/mandates/${event.entityId}`;
+  }
+
+  return event.targetUser?.id ? `/members/${event.targetUser.id}` : null;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 50;
 
 export default function AdminAuditHistory() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [entityFilter, setEntityFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
@@ -81,6 +119,11 @@ export default function AdminAuditHistory() {
   const normalised = logs.map((row: any) => ({
     id: row.id,
     adminId: row.admin_id ?? row.adminId,
+    admin: row.admin,
+    targetUser: row.targetUser,
+    targetCompanyName: row.targetCompanyName,
+    targetEmail: row.targetEmail,
+    targetMandateTitle: row.targetMandateTitle,
     action: row.action,
     entityType: row.entity_type ?? row.entityType,
     entityId: row.entity_id ?? row.entityId,
@@ -181,6 +224,7 @@ export default function AdminAuditHistory() {
             {filtered.map((event, idx) => {
               const meta = getActionMeta(event.action);
               const Icon = meta.icon;
+              const targetPath = getTargetPath(event);
               return (
                 <li key={event.id} className={`relative flex gap-4 pb-0 ${idx < filtered.length - 1 ? 'mb-5' : ''}`}>
                   {/* Icon dot on timeline */}
@@ -195,10 +239,19 @@ export default function AdminAuditHistory() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-0.5">
                         <p className="text-sm font-semibold text-foreground">{meta.label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Entity: <span className="font-mono text-foreground">{event.entityType}</span>
-                          <span className="mx-1.5 opacity-40">·</span>
-                          <span className="font-mono text-[11px] text-muted-foreground">{event.entityId.slice(0, 8)}…</span>
+                        {targetPath ? (
+                          <button
+                            type="button"
+                            onClick={() => navigate(targetPath)}
+                            className="text-xs text-muted-foreground text-left hover:text-primary hover:underline"
+                          >
+                            {getTargetDescription(event)}
+                          </button>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">{getTargetDescription(event)}</p>
+                        )}
+                        <p className="text-[11px] text-muted-foreground">
+                          {event.entityType.replace(/_/g, ' ')} · {event.entityId.slice(0, 8)}...
                         </p>
                         {event.note && (
                           <p className="text-xs text-muted-foreground mt-1 italic">
@@ -214,7 +267,7 @@ export default function AdminAuditHistory() {
                           {formatRelativeTime(event.createdAt as unknown as string)}
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                          admin: {(event.adminId as string).slice(0, 8)}…
+                          by {event.admin?.companyName || (event.adminId as string).slice(0, 8)}
                         </p>
                       </div>
                     </div>

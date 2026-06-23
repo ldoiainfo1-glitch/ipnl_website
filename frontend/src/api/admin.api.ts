@@ -44,6 +44,10 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}/activate`);
   },
 
+  deleteUser: async (id: string, reason: string) => {
+    return apiClient.delete(`/admin/users/${id}`, { data: { reason } });
+  },
+
   updateUserTier: async (id: string, tier: string) => {
     return apiClient.patch(`/admin/users/${id}/tier`, { tier });
   },

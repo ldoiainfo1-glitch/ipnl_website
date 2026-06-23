@@ -1,6 +1,6 @@
 import { AxiosProgressEvent } from 'axios';
 import { apiClient } from './client';
-import { User, UpdateProfileRequest, UpdateLogoRequest, MemberFilters } from '@/types';
+import { User, UpdateProfileRequest, UpdateLogoRequest, MemberFilters, MemberProfileResponse } from '@/types';
 
 type UploadProgressCallback = (progressPercent: number) => void;
 
@@ -32,11 +32,11 @@ export const profileApi = {
 
   // Member directory
   getMembers: async (filters?: MemberFilters) => {
-    return apiClient.get<User[]>('/members', { params: filters });
+    return apiClient.get<User[]>('/profile/members', { params: filters });
   },
 
   // Public profile of any user
   getUserProfile: async (userId: string) => {
-    return apiClient.get<User>(`/members/${userId}`);
+    return apiClient.get<MemberProfileResponse>(`/profile/members/${userId}`);
   },
 };

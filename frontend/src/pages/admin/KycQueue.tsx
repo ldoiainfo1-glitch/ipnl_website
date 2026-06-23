@@ -14,6 +14,14 @@ function statusToLabel(status: KycStatus) {
   return status.replace('_', ' ');
 }
 
+function getKycSubjectLabel(doc: KycDocument) {
+  return doc.user?.companyName || doc.user?.email || 'Unknown user';
+}
+
+function getKycSubjectMeta(doc: KycDocument) {
+  return [doc.user?.email, doc.user?.role].filter(Boolean).join(' · ');
+}
+
 function RejectionModal({
   onConfirm,
   onCancel,
@@ -262,11 +270,14 @@ export default function KycQueue() {
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">User ID: {doc.userId}</span>
+                    <span className="font-semibold text-sm">{getKycSubjectLabel(doc)}</span>
                     <Badge variant={statusBadgeVariant(doc.status) as any}>
                       {doc.status.replace('_', ' ')}
                     </Badge>
                   </div>
+                  {getKycSubjectMeta(doc) && (
+                    <p className="text-xs text-muted-foreground">{getKycSubjectMeta(doc)}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Submitted: {doc.createdAt ? formatDate(doc.createdAt) : '—'}
                   </p>
@@ -389,11 +400,14 @@ export default function KycQueue() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">User ID: {doc.userId}</span>
+                      <span className="font-semibold text-sm">{getKycSubjectLabel(doc)}</span>
                       <Badge variant={statusBadgeVariant(doc.status) as any}>
                         {statusToLabel(doc.status)}
                       </Badge>
                     </div>
+                    {getKycSubjectMeta(doc) && (
+                      <p className="text-xs text-muted-foreground">{getKycSubjectMeta(doc)}</p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Reviewed: {doc.reviewedAt ? formatDate(doc.reviewedAt) : '—'}
                       {doc.reviewedBy && ` by ${doc.reviewedBy}`}

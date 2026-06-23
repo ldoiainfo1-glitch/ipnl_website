@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
-import { Trophy, Star, Shield } from 'lucide-react';
+import { Trophy, Star, Shield, CheckCircle2, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function Leaderboard() {
@@ -32,8 +32,35 @@ export default function Leaderboard() {
           <h1 className="text-4xl font-serif font-bold">Member Ranking</h1>
         </div>
         <p className="text-muted-foreground text-sm max-w-2xl">
-          Top members by reputation — a blend of verification tier, average review score, and review volume.
+          Top verified members by reputation, calculated from verification strength, peer reviews, and approved marketplace activity.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            Verification
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">KYC approved members receive the trust base. Enterprise members receive a small tier lift.</p>
+          <p className="text-xs font-semibold mt-3">Up to 35 points</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            Reviews
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Peer ratings use a weighted average, so review quality and review volume both matter.</p>
+          <p className="text-xs font-semibold mt-3">Up to 50 points</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Activity className="w-4 h-4 text-primary" />
+            Activity
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Approved live mandates add contribution points without rewarding unmoderated listings.</p>
+          <p className="text-xs font-semibold mt-3">Up to 15 points</p>
+        </div>
       </div>
 
       {/* Filters */}
@@ -100,6 +127,11 @@ export default function Leaderboard() {
                 <p className="text-sm text-muted-foreground uppercase tracking-wide">
                   {entry.user?.role?.replace(/_/g, ' ')} • {entry.user?.companyName} • INDIA
                 </p>
+                <div className="flex flex-wrap gap-2 mt-3 text-xs text-muted-foreground">
+                  <span>Verification {entry.scoreBreakdown.verification}</span>
+                  <span>Reviews {entry.scoreBreakdown.reviews}</span>
+                  <span>Activity {entry.scoreBreakdown.activity}</span>
+                </div>
               </div>
 
               {/* Stats */}
@@ -107,8 +139,8 @@ export default function Leaderboard() {
                 {/* Star Rating */}
                 <div className="flex items-center space-x-2">
                   <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                  <span className="font-semibold text-lg">{(entry.reputationScore / 20).toFixed(1)}</span>
-                  <span className="text-sm text-muted-foreground">(0)</span>
+                  <span className="font-semibold text-lg">{entry.averageRating > 0 ? entry.averageRating.toFixed(1) : '—'}</span>
+                  <span className="text-sm text-muted-foreground">({entry.reviewCount})</span>
                 </div>
 
                 {/* Shield Score */}

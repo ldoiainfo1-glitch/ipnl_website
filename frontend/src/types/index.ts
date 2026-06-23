@@ -272,11 +272,44 @@ export interface LeaderboardEntry {
   successfulIntros: number;
   mandatesPosted: number;
   reputationScore: number;
+  averageRating: number;
+  reviewCount: number;
+  scoreBreakdown: {
+    verification: number;
+    reviews: number;
+    activity: number;
+  };
+}
+
+export interface ReputationReview {
+  id: string;
+  reviewerId: string;
+  revieweeId: string;
+  mandateId?: string;
+  rating: number;
+  comment?: string;
+  status: 'PUBLISHED' | 'HIDDEN';
+  reviewer?: User;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReputationStats {
+  reputationScore: number;
+  averageRating: number;
+  reviewCount: number;
+  approvedMandates: number;
+  scoreBreakdown: {
+    verification: number;
+    reviews: number;
+    activity: number;
+  };
 }
 
 export interface KycDocument {
   id: string;
   userId: string;
+  user?: User;
   
   panCard?: string;
   gstCertificate?: string;
@@ -298,6 +331,10 @@ export interface AuditEvent {
   id: string;
   adminId: string;
   admin?: User;
+  targetUser?: User;
+  targetCompanyName?: string;
+  targetEmail?: string;
+  targetMandateTitle?: string;
   
   action: string;
   entityType: string;
@@ -420,6 +457,11 @@ export interface MemberFilters {
   search?: string;
   page?: number;
   limit?: number;
+}
+
+export interface MemberProfileResponse {
+  user: User;
+  mandates: Mandate[];
 }
 
 export interface MandateFilters {

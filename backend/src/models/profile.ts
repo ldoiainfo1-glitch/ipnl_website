@@ -6,36 +6,37 @@ interface UserStats {
   mandatesPosted?: number;
   introsSent?: number;
   introsReceived?: number;
-  kycStatus?: 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  kycStatus?: 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 }
 
 export function toUserDTO(row: ProfileRow, stats: UserStats = {}) {
   return {
     id: row.id,
     email: row.email ?? '',
-    mobile: '',
+    mobile: row.mobile ?? '',
     companyName: row.company_name ?? 'Unknown Company',
     role: normalizeRole(row.role),
     tier: normalizeTier(row.tier),
-    status: 'APPROVED' as const,
-    kycStatus: stats.kycStatus ?? ('SUBMITTED' as const),
+    status: normalizeStatus(row.status),
+    kycStatus: stats.kycStatus ?? normalizeKycStatus(row.kyc_status),
 
-    companyDescription: '',
-    website: '',
-    linkedin: '',
-    city: '',
-    state: '',
-    assetPreferences: [],
-    ticketSizeMin: undefined,
-    ticketSizeMax: undefined,
+    companyDescription: row.company_description ?? '',
+    website: row.website ?? '',
+    linkedin: row.linkedin ?? '',
+    logo: row.logo ?? undefined,
+    city: row.city ?? '',
+    state: row.state ?? '',
+    assetPreferences: row.asset_preferences ?? [],
+    ticketSizeMin: row.ticket_size_min != null ? Number(row.ticket_size_min) : undefined,
+    ticketSizeMax: row.ticket_size_max != null ? Number(row.ticket_size_max) : undefined,
 
-    reputationScore: 50,
+    reputationScore: row.reputation_score ?? 50,
     totalIntrosSent: stats.introsSent ?? 0,
     totalIntrosReceived: stats.introsReceived ?? 0,
     totalMandatesPosted: stats.mandatesPosted ?? 0,
 
-    introQuotaLimit: normalizeTier(row.tier) === 'VERIFIED' ? 10 : normalizeTier(row.tier) === 'ENTERPRISE' ? 9999 : 0,
-    introQuotaUsed: stats.introsSent ?? 0,
+    introQuotaLimit: row.intro_quota_limit ?? (normalizeTier(row.tier) === 'VERIFIED' ? 10 : normalizeTier(row.tier) === 'ENTERPRISE' ? 9999 : 0),
+    introQuotaUsed: row.intro_quota_used ?? stats.introsSent ?? 0,
     billingAnniversary: undefined,
 
     isAnonymous: normalizeTier(row.tier) === 'OBSERVER',
@@ -43,6 +44,20 @@ export function toUserDTO(row: ProfileRow, stats: UserStats = {}) {
     updatedAt: row.updated_at,
     lastLoginAt: undefined,
   };
+}
+
+function normalizeStatus(status: string): 'PENDING_VERIFICATION' | 'APPROVED' | 'REJECTED' | 'SUSPENDED' {
+  if (status === 'APPROVED' || status === 'REJECTED' || status === 'SUSPENDED' || status === 'PENDING_VERIFICATION') {
+    return status;
+  }
+  return 'PENDING_VERIFICATION';
+}
+
+function normalizeKycStatus(status: string): 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' {
+  if (status === 'NOT_SUBMITTED' || status === 'SUBMITTED' || status === 'UNDER_REVIEW' || status === 'APPROVED' || status === 'REJECTED') {
+    return status;
+  }
+  return 'NOT_SUBMITTED';
 }
 
 function normalizeTier(tier: string): 'OBSERVER' | 'VERIFIED' | 'ENTERPRISE' {
