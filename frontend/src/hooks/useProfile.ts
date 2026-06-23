@@ -2,7 +2,22 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/api/profile.api';
 import { useAuthStore } from '@/store/authStore';
-import { MemberFilters, UpdateProfileRequest, UpdateLogoRequest } from '@/types';
+import { MemberFilters, UpdateProfileRequest, UpdateLogoRequest, User } from '@/types';
+
+function syncAuthUser(profile: Partial<User>) {
+  const currentUser = useAuthStore.getState().user;
+  if (!currentUser || (profile.id && profile.id !== currentUser.id)) return;
+
+  const nextUser = { ...currentUser, ...profile };
+  const hasChanged = Object.keys(nextUser).some((key) => {
+    const userKey = key as keyof User;
+    return currentUser[userKey] !== nextUser[userKey];
+  });
+
+  if (hasChanged) {
+    useAuthStore.setState({ user: nextUser });
+  }
+}
 
 export const useMyProfile = () => {
   const queryClient = useQueryClient();
@@ -19,22 +34,15 @@ export const useMyProfile = () => {
   });
 
   useEffect(() => {
-    if (!profile || !storeUser) return;
-    if (storeUser.role === profile.role && storeUser.tier === profile.tier) return;
-
-    useAuthStore.setState({
-      user: {
-        ...storeUser,
-        role: profile.role,
-        tier: profile.tier,
-        companyName: profile.companyName,
-      },
-    });
-  }, [profile, storeUser]);
+    if (profile) syncAuthUser(profile);
+  }, [profile]);
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateProfileRequest) => profileApi.updateMyProfile(data),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      syncAuthUser(response.data);
+      queryClient.setQueryData(['myProfile'], response.data);
+      queryClient.setQueryData(['currentUser'], response.data);
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
@@ -43,7 +51,15 @@ export const useMyProfile = () => {
   const updateLogoMutation = useMutation({
     mutationFn: ({ data, onProgress }: { data: UpdateLogoRequest; onProgress?: (progress: number) => void }) =>
       profileApi.updateLogo(data, onProgress),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      const logoUpdate = { logo: response.data.logo };
+      syncAuthUser(logoUpdate);
+      queryClient.setQueryData<User | undefined>(['myProfile'], (current) =>
+        current ? { ...current, ...logoUpdate } : current,
+      );
+      queryClient.setQueryData<User | undefined>(['currentUser'], (current) =>
+        current ? { ...current, ...logoUpdate } : current,
+      );
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
