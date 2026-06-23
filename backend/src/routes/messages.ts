@@ -69,6 +69,13 @@ async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupaba
     .limit(1)
     .maybeSingle();
 
+  const { count: unreadCount } = await supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('conversation_id', row.id)
+    .neq('sender_id', currentUserId)
+    .is('seen_at', null);
+
   return {
     id: row.id,
     participants: (participants || []).map((p) => ({
@@ -94,7 +101,7 @@ async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupaba
     lastMessage: lastMessage
       ? mapMessage(lastMessage)
       : undefined,
-    unreadCount: 0,
+    unreadCount: unreadCount ?? 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     _forUser: currentUserId,
@@ -354,8 +361,8 @@ router.post('/', verifySupabase, async (req, res) => {
 
     const message = mapMessage(data);
 
-    const recipientId = conversation.participant_ids.find((id) => id !== req.user!.id);
-    if (recipientId) {
+    const recipientIds = conversation.participant_ids.filter((id) => id !== req.user!.id);
+    for (const recipientId of recipientIds) {
       const notification = await createNotification({
         userId: recipientId,
         type: 'MESSAGE_RECEIVED',

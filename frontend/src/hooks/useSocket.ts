@@ -68,8 +68,9 @@ export const useSocket = () => {
       });
       queryClient.setQueryData<number>(['notifications', 'unreadCount'], (current = 0) => current + 1);
 
-      // Update notifications cache
+      // Keep notification list and unread count in sync with server state.
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unreadCount'] });
       
       // Show browser notification if permitted
       if (Notification.permission === 'granted') {
@@ -84,11 +85,13 @@ export const useSocket = () => {
     socket.on('intro:received', () => {
       queryClient.invalidateQueries({ queryKey: ['intros', 'received'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unreadCount'] });
     });
 
     socket.on('intro:responded', () => {
       queryClient.invalidateQueries({ queryKey: ['intros', 'sent'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unreadCount'] });
     });
 
     // Mandate events
