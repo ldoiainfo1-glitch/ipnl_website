@@ -4,7 +4,7 @@ import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/apiError';
 import { toUserDTO } from '../models/profile';
 import { listIntros } from '../lib/runtimeStore';
-import { createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
+import { createPrivateObjectViewUrl, createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
 import { upload, uploadErrorHandler } from '../middleware/upload';
 import { toMandateDTO } from '../models/mandate';
 import type { Database } from '../types/database';
@@ -16,6 +16,19 @@ function normalizeOptionalText(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;
   const text = String(value).trim();
   return text ? text : null;
+}
+
+async function withSignedLogo<T extends { logo?: string }>(input: T): Promise<T> {
+  if (!input.logo) return input;
+
+  try {
+    return {
+      ...input,
+      logo: await createPrivateObjectViewUrl(input.logo, 3600),
+    };
+  } catch {
+    return input;
+  }
 }
 
 async function getApprovedLiveMandatesForUser(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>, userId: string) {
@@ -62,12 +75,14 @@ router.get('/me', verifySupabase, async (req, res) => {
     const sent = intros.filter((i) => i.senderId === req.user!.id).length;
     const received = intros.filter((i) => i.receiverId === req.user!.id).length;
 
-    return res.json(toUserDTO(data, {
+    const user = toUserDTO(data, {
       mandatesPosted: mandateCount ?? 0,
       introsSent: sent,
       introsReceived: received,
       kycStatus: (kycRow as any)?.status,
-    }));
+    });
+
+    return res.json(await withSignedLogo(user));
   } catch (err: any) {
     return serverError(res, err.message);
   }
@@ -116,12 +131,14 @@ router.patch('/me', verifySupabase, async (req, res) => {
       supabase.from('kyc_reviews').select('status').eq('user_id', req.user.id).maybeSingle(),
     ]);
     const intros2 = listIntros();
-    return res.json(toUserDTO(data, {
+    const user = toUserDTO(data, {
       mandatesPosted: mandateCount2 ?? 0,
       introsSent: intros2.filter((i) => i.senderId === req.user!.id).length,
       introsReceived: intros2.filter((i) => i.receiverId === req.user!.id).length,
       kycStatus: (kycRow2 as any)?.status,
-    }));
+    });
+
+    return res.json(await withSignedLogo(user));
   } catch (err: any) {
     return serverError(res, err.message);
   }
@@ -156,8 +173,10 @@ router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandl
       .single();
     if (error || !data) return badRequest(res, error?.message ?? 'Unable to save logo');
 
+    const signedLogo = data.logo ? await createPrivateObjectViewUrl(data.logo, 3600) : data.logo;
+
     return res.json({
-      logo: data.logo,
+      logo: signedLogo,
       storage: getStorageInfo(),
     });
   } catch (err: any) {
@@ -210,12 +229,13 @@ router.get('/members', verifySupabase, async (req, res) => {
       const { data: kycRow } = await supabase
         .from('kyc_reviews').select('status').eq('user_id', row.id).maybeSingle();
       const intros = listIntros();
-      return toUserDTO(row, {
+      const user = toUserDTO(row, {
         mandatesPosted: mandateCount ?? 0,
         introsSent: intros.filter((i) => i.senderId === row.id).length,
         introsReceived: intros.filter((i) => i.receiverId === row.id).length,
         kycStatus: (kycRow as any)?.status,
       });
+      return withSignedLogo(user);
     }));
 
     return res.json(members.filter((member) => member.kycStatus === 'APPROVED'));
@@ -252,7 +272,7 @@ router.get('/members/:id', verifySupabase, async (req, res) => {
       kycStatus: (kycRow3 as any)?.status,
     });
     const mandates = await getApprovedLiveMandatesForUser(supabase, data.id);
-    return res.json({ user, mandates });
+    return res.json({ user: await withSignedLogo(user), mandates });
   } catch (err: any) {
     return serverError(res, err.message);
   }
