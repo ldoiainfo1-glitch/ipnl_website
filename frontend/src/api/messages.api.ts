@@ -20,6 +20,10 @@ export const messagesApi = {
     return apiClient.post<Message>('/messages', data);
   },
 
+  sendProfileDetails: async (conversationId: string) => {
+    return apiClient.post<Message>('/messages/profile-details', { conversationId });
+  },
+
   markAsRead: async (conversationId: string) => {
     return apiClient.patch(`/messages/${conversationId}/read`);
   },

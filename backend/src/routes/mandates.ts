@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/apiError';
 import { toMandateDTO, toMandateInsertPayload, toMandateUpdatePayload, hasAnyUpdateFields } from '../models/mandate';
+import { toUserDTO } from '../models/profile';
 
 const router = express.Router();
 
@@ -31,6 +32,22 @@ function attachMandateReviewMetadata(mandate: ReturnType<typeof toMandateDTO>, r
     moderationReviewedBy: review?.reviewed_by ?? undefined,
     moderationReviewedAt: review?.reviewed_at ?? undefined,
   };
+}
+
+async function attachMandateOwners(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>, mandates: ReturnType<typeof toMandateDTO>[]) {
+  const userIds = Array.from(new Set(mandates.map((mandate) => mandate.userId)));
+  if (userIds.length === 0) return mandates;
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('*')
+    .in('id', userIds);
+  const profileById = new Map((profiles ?? []).map((profile) => [profile.id, toUserDTO(profile)]));
+
+  return mandates.map((mandate) => ({
+    ...mandate,
+    user: profileById.get(mandate.userId),
+  }));
 }
 
 // ---------------------------------------------------------------------
@@ -114,8 +131,13 @@ router.get('/', async (req, res) => {
 
     const total = count ?? data?.length ?? 0;
 
+    const items = await attachMandateOwners(
+      supabase,
+      (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), { status: 'APPROVED' })),
+    );
+
     return res.json({
-      items: (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), { status: 'APPROVED' })),
+      items,
       meta: {
         total,
         page: pageNum,

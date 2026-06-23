@@ -233,6 +233,8 @@ export interface Database {
           conversation_id: string;
           sender_id: string;
           content: string | null;
+          seen_at: string | null;
+          expires_at: string | null;
           created_at: string;
         };
         Insert: Partial<{
@@ -240,6 +242,8 @@ export interface Database {
           conversation_id: string;
           sender_id: string;
           content: string | null;
+          seen_at: string | null;
+          expires_at: string | null;
           created_at: string;
         }> & {
           conversation_id: string;
@@ -250,7 +254,46 @@ export interface Database {
           conversation_id: string;
           sender_id: string;
           content: string | null;
+          seen_at: string | null;
+          expires_at: string | null;
           created_at: string;
+        }>;
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string;
+          related_entity_id: string | null;
+          related_entity_type: string | null;
+          is_read: boolean;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: Partial<{
+          id: string;
+          type: string;
+          related_entity_id: string | null;
+          related_entity_type: string | null;
+          is_read: boolean;
+          read_at: string | null;
+          created_at: string;
+        }> & {
+          user_id: string;
+          title: string;
+          message: string;
+        };
+        Update: Partial<{
+          type: string;
+          title: string;
+          message: string;
+          related_entity_id: string | null;
+          related_entity_type: string | null;
+          is_read: boolean;
+          read_at: string | null;
         }>;
         Relationships: [];
       };

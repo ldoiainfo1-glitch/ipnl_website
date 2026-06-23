@@ -2,7 +2,8 @@ import express from 'express';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/apiError';
-import { getIntro, listIntros, putIntro, putNotification } from '../lib/runtimeStore';
+import { createNotification } from '../lib/notificationsStore';
+import { getIntro, listIntros, putIntro } from '../lib/runtimeStore';
 import { toMandateDTO } from '../models/mandate';
 import { toUserDTO } from '../models/profile';
 
@@ -35,7 +36,7 @@ router.post('/', verifySupabase, async (req, res) => {
       status: 'PENDING',
     });
 
-    putNotification({
+    await createNotification({
       userId: body.receiverId,
       type: 'INTRO_RECEIVED',
       title: 'New Introduction Request',
@@ -134,7 +135,7 @@ router.patch('/:id/respond', verifySupabase, async (req, res) => {
       updatedAt: new Date().toISOString(),
     });
 
-    putNotification({
+    await createNotification({
       userId: updated.senderId,
       type: body.status === 'ACCEPTED' ? 'INTRO_ACCEPTED' : 'INTRO_DECLINED',
       title: body.status === 'ACCEPTED' ? 'Introduction Accepted' : 'Introduction Declined',

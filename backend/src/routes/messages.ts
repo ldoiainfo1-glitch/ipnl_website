@@ -2,9 +2,58 @@ import express from 'express';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/apiError';
-import { putNotification } from '../lib/runtimeStore';
+import { createNotification } from '../lib/notificationsStore';
+import { emitToUsers } from '../lib/realtime';
+import { toUserDTO } from '../models/profile';
 
 const router = express.Router();
+const PROFILE_CARD_MESSAGE_TYPE = 'IPNL_PROFILE_CARD_V1';
+const MESSAGE_SEEN_TTL_DAYS = 7;
+
+function mapMessage(row: { id: string; conversation_id: string; sender_id: string; content: string | null; seen_at?: string | null; expires_at?: string | null; created_at: string }) {
+  return {
+    id: row.id,
+    conversationId: row.conversation_id,
+    senderId: row.sender_id,
+    content: row.content ?? '',
+    status: row.seen_at ? 'READ' : 'SENT',
+    seenAt: row.seen_at ?? undefined,
+    expiresAt: row.expires_at ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+  };
+}
+
+async function deleteExpiredSeenMessages(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>) {
+  await supabase
+    .from('messages')
+    .delete()
+    .not('seen_at', 'is', null)
+    .not('expires_at', 'is', null)
+    .lte('expires_at', new Date().toISOString());
+}
+
+function createProfileCardContent(user: ReturnType<typeof toUserDTO>): string {
+  return JSON.stringify({
+    type: PROFILE_CARD_MESSAGE_TYPE,
+    profile: {
+      companyName: user.companyName,
+      role: user.role,
+      tier: user.tier,
+      kycStatus: user.kycStatus,
+      companyDescription: user.companyDescription,
+      website: user.website,
+      linkedin: user.linkedin,
+      city: user.city,
+      state: user.state,
+      assetPreferences: user.assetPreferences,
+      ticketSizeMin: user.ticketSizeMin,
+      ticketSizeMax: user.ticketSizeMax,
+      reputationScore: user.reputationScore,
+      totalMandatesPosted: user.totalMandatesPosted,
+    },
+  });
+}
 
 async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>, row: { id: string; participant_ids: string[]; created_at: string; updated_at: string }, currentUserId: string) {
   const { data: participants } = await supabase
@@ -43,15 +92,7 @@ async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupaba
     })),
     participantIds: row.participant_ids,
     lastMessage: lastMessage
-      ? {
-          id: lastMessage.id,
-          conversationId: lastMessage.conversation_id,
-          senderId: lastMessage.sender_id,
-          content: lastMessage.content ?? '',
-          status: 'SENT',
-          createdAt: lastMessage.created_at,
-          updatedAt: lastMessage.created_at,
-        }
+      ? mapMessage(lastMessage)
       : undefined,
     unreadCount: 0,
     createdAt: row.created_at,
@@ -73,6 +114,8 @@ router.get('/conversations', verifySupabase, async (req, res) => {
       .order('updated_at', { ascending: false });
 
     if (error) return badRequest(res, error.message);
+
+  await deleteExpiredSeenMessages(supabase);
 
     const result = await Promise.all((data || []).map((c) => mapConversation(supabase, c, req.user!.id)));
     return res.json(result.map(({ _forUser, ...rest }) => rest));
@@ -163,6 +206,8 @@ router.get('/:conversationId', verifySupabase, async (req, res) => {
     if (!conversation) return notFound(res, 'Conversation not found');
     if (!conversation.participant_ids.includes(req.user.id)) return unauthorized(res, 'Not part of this conversation');
 
+    await deleteExpiredSeenMessages(supabase);
+
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -172,15 +217,76 @@ router.get('/:conversationId', verifySupabase, async (req, res) => {
 
     if (error) return badRequest(res, error.message);
 
-    return res.json((data || []).map((m) => ({
-      id: m.id,
-      conversationId: m.conversation_id,
-      senderId: m.sender_id,
-      content: m.content ?? '',
-      status: 'SENT',
-      createdAt: m.created_at,
-      updatedAt: m.created_at,
-    })));
+    return res.json((data || []).map(mapMessage));
+  } catch (err: any) {
+    return serverError(res, err.message);
+  }
+});
+
+router.post('/profile-details', verifySupabase, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
+    if (!req.user) return unauthorized(res);
+
+    const body = req.body as { conversationId?: string };
+    if (!body.conversationId) return badRequest(res, 'conversationId is required');
+
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('id', body.conversationId)
+      .single();
+
+    if (!conversation) return notFound(res, 'Conversation not found');
+    if (!conversation.participant_ids.includes(req.user.id)) return unauthorized(res, 'Not part of this conversation');
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', req.user.id)
+      .single();
+
+    if (profileError || !profile) return notFound(res, 'Profile not found');
+
+    const content = createProfileCardContent(toUserDTO(profile));
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: body.conversationId,
+        sender_id: req.user.id,
+        content,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) return badRequest(res, error?.message ?? 'Unable to send profile details');
+
+    await supabase
+      .from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', body.conversationId);
+
+    const message = mapMessage(data);
+    const recipientIds = conversation.participant_ids.filter((id) => id !== req.user!.id);
+    for (const recipientId of recipientIds) {
+      const notification = await createNotification({
+        userId: recipientId,
+        type: 'MESSAGE_RECEIVED',
+        title: 'Profile Details Shared',
+        message: `${profile.company_name ?? 'A member'} shared company profile details`,
+        relatedEntityId: body.conversationId,
+        relatedEntityType: 'conversation',
+      });
+      emitToUsers([recipientId], 'notification:new', notification);
+    }
+
+    emitToUsers(conversation.participant_ids, 'message:new', {
+      conversationId: body.conversationId,
+      message,
+    });
+
+    return res.status(201).json(message);
   } catch (err: any) {
     return serverError(res, err.message);
   }
@@ -241,9 +347,16 @@ router.post('/', verifySupabase, async (req, res) => {
 
     if (error || !data) return badRequest(res, error?.message ?? 'Unable to send message');
 
+    await supabase
+      .from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', conversationId);
+
+    const message = mapMessage(data);
+
     const recipientId = conversation.participant_ids.find((id) => id !== req.user!.id);
     if (recipientId) {
-      putNotification({
+      const notification = await createNotification({
         userId: recipientId,
         type: 'MESSAGE_RECEIVED',
         title: 'New Message',
@@ -251,25 +364,55 @@ router.post('/', verifySupabase, async (req, res) => {
         relatedEntityId: conversationId,
         relatedEntityType: 'conversation',
       });
+      emitToUsers([recipientId], 'notification:new', notification);
     }
 
-    return res.status(201).json({
-      id: data.id,
-      conversationId: data.conversation_id,
-      senderId: data.sender_id,
-      content: data.content ?? '',
-      status: 'SENT',
-      createdAt: data.created_at,
-      updatedAt: data.created_at,
+    emitToUsers(conversation.participant_ids, 'message:new', {
+      conversationId,
+      message,
     });
+
+    return res.status(201).json(message);
   } catch (err: any) {
     return serverError(res, err.message);
   }
 });
 
 router.patch('/:conversationId/read', verifySupabase, async (req, res) => {
-  if (!req.user) return unauthorized(res);
-  return res.json({ success: true });
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
+    if (!req.user) return unauthorized(res);
+
+    const { data: conversation } = await supabase
+      .from('conversations')
+      .select('*')
+      .eq('id', req.params.conversationId)
+      .single();
+
+    if (!conversation) return notFound(res, 'Conversation not found');
+    if (!conversation.participant_ids.includes(req.user.id)) return unauthorized(res, 'Not part of this conversation');
+
+    await deleteExpiredSeenMessages(supabase);
+
+    const now = new Date();
+    const seenAt = now.toISOString();
+    const expiresAt = new Date(now.getTime() + MESSAGE_SEEN_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+      .from('messages')
+      .update({ seen_at: seenAt, expires_at: expiresAt })
+      .eq('conversation_id', req.params.conversationId)
+      .neq('sender_id', req.user.id)
+      .is('seen_at', null)
+      .select('id');
+
+    if (error) return badRequest(res, error.message);
+
+    return res.json({ success: true, seenAt, expiresAt, updatedCount: data?.length ?? 0 });
+  } catch (err: any) {
+    return serverError(res, err.message);
+  }
 });
 
 export default router;

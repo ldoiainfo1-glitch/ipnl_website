@@ -237,6 +237,8 @@ export interface Message {
   
   content: string;
   status: MessageStatus;
+  seenAt?: Date;
+  expiresAt?: Date;
   
   // For file attachments (future)
   attachments?: string[];

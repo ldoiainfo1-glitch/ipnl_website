@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMandates } from '@/hooks/useMandates';
+import { messagesApi } from '@/api/messages.api';
+import { useAuthStore } from '@/store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,24 +13,60 @@ import {
   MapPin, 
   TrendingUp, 
   Search,
-  Filter
+  Filter,
+  MessageSquare
 } from 'lucide-react';
 import { formatIndianNumber, formatRelativeTime } from '@/utils/formatters';
 import { ASSET_CLASSES, INDIAN_CITIES, MANDATE_TYPES } from '@/utils/constants';
-import { MandateFilters, MandateType, AssetClass } from '@/types';
+import { Mandate, MandateFilters, MandateType, AssetClass } from '@/types';
 
 export default function Marketplace() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
   const [filters, setFilters] = useState<MandateFilters>({
     page: 1,
     limit: 20,
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [sentMandateIds, setSentMandateIds] = useState<Set<string>>(() => new Set());
 
   const { mandates, isLoading, meta } = useMandates(filters);
 
+  const quickMessageMutation = useMutation({
+    mutationFn: (mandate: Mandate) =>
+      messagesApi.sendMessage({
+        recipientId: mandate.userId,
+        content: createOwnerMessage(mandate),
+      }),
+    onSuccess: (_response, mandate) => {
+      setSentMandateIds((current) => new Set(current).add(mandate.id));
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+
   const handleFilterChange = (key: keyof MandateFilters, value: any) => {
     setFilters({ ...filters, [key]: value, page: 1 });
+  };
+
+  const handleQuickMessage = async (event: React.MouseEvent<HTMLButtonElement>, mandate: Mandate) => {
+    event.stopPropagation();
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    if (mandate.userId === user.id) {
+      alert('This is your own mandate.');
+      return;
+    }
+
+    try {
+      await quickMessageMutation.mutateAsync(mandate);
+    } catch (error: any) {
+      alert(error.detail || 'Unable to send message to the mandate owner');
+    }
   };
 
   return (
@@ -195,6 +234,18 @@ export default function Marketplace() {
                           to {formatIndianNumber(mandate.ticketSizeMax)}
                         </p>
                       )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="mt-4"
+                        onClick={(event) => handleQuickMessage(event, mandate)}
+                        disabled={quickMessageMutation.isPending || mandate.userId === user?.id || sentMandateIds.has(mandate.id)}
+                        title={mandate.userId === user?.id ? 'You own this mandate' : 'Send a message to this mandate owner'}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        {sentMandateIds.has(mandate.id) ? 'Message Sent' : 'Message Owner'}
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -228,4 +279,9 @@ export default function Marketplace() {
       </div>
     </div>
   );
+}
+
+function createOwnerMessage(mandate: Mandate): string {
+  const ownerName = mandate.user?.companyName || 'there';
+  return `Hi ${ownerName}, I am interested in ${mandate.title} and want to know more about this.`;
 }

@@ -2,7 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/store/authStore';
-import type { Notification } from '@/types';
+import type { Message, Notification } from '@/types';
+
+interface MessageNewPayload {
+  conversationId: string;
+  message: Message;
+}
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
@@ -19,12 +24,12 @@ export const useSocket = () => {
       return;
     }
 
-    // Connect to Socket.io server
-    const socket = io('http://localhost:4000', {
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
+    const socket = io(socketUrl, {
       auth: {
         token: localStorage.getItem('ipn_token'),
       },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
     });
 
     socketRef.current = socket;
@@ -45,14 +50,24 @@ export const useSocket = () => {
     });
 
     // Message events
-    socket.on('message:new', () => {
-      // Update messages cache
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+    socket.on('message:new', ({ conversationId, message }: MessageNewPayload) => {
+      queryClient.setQueryData<Message[]>(['messages', conversationId], (current = []) => {
+        if (current.some((item) => item.id === message.id)) return current;
+        return [...current, message];
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     });
 
     // Notification events
     socket.on('notification:new', (notification: Notification) => {
+      queryClient.setQueryData<Notification[]>(['notifications'], (current = []) => {
+        if (current.some((item) => item.id === notification.id)) return current;
+        return [notification, ...current];
+      });
+      queryClient.setQueryData<number>(['notifications', 'unreadCount'], (current = 0) => current + 1);
+
       // Update notifications cache
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       

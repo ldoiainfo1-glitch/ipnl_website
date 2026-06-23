@@ -2,15 +2,16 @@ import express from 'express';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { notFound, unauthorized } from '../utils/apiError';
 import {
-  deleteNotification,
-  getNotification,
+  deleteNotificationForUser,
+  getNotificationForUser,
   listNotificationsForUser,
-  updateNotification,
-} from '../lib/runtimeStore';
+  markAllNotificationsRead,
+  markNotificationRead,
+} from '../lib/notificationsStore';
 
 const router = express.Router();
 
-router.get('/', verifySupabase, (req, res) => {
+router.get('/', verifySupabase, async (req, res) => {
   if (!req.user) return unauthorized(res);
 
   const page = Math.max(1, parseInt((req.query.page as string) || '1', 10) || 1);
@@ -18,7 +19,7 @@ router.get('/', verifySupabase, (req, res) => {
   const from = (page - 1) * limit;
   const to = from + limit;
 
-  const items = listNotificationsForUser(req.user.id).slice(from, to);
+  const items = (await listNotificationsForUser(req.user.id)).slice(from, to);
   return res.json(
     items.map((n) => ({
       id: n.id,
@@ -35,38 +36,34 @@ router.get('/', verifySupabase, (req, res) => {
   );
 });
 
-router.get('/unread-count', verifySupabase, (req, res) => {
+router.get('/unread-count', verifySupabase, async (req, res) => {
   if (!req.user) return unauthorized(res);
-  const count = listNotificationsForUser(req.user.id).filter((n) => !n.isRead).length;
+  const count = (await listNotificationsForUser(req.user.id)).filter((n) => !n.isRead).length;
   return res.json({ count });
 });
 
-router.patch('/:id/read', verifySupabase, (req, res) => {
+router.patch('/:id/read', verifySupabase, async (req, res) => {
   if (!req.user) return unauthorized(res);
 
-  const record = getNotification(req.params.id);
-  if (!record || record.userId !== req.user.id) return notFound(res, 'Notification not found');
+  const record = await getNotificationForUser(req.params.id, req.user.id);
+  if (!record) return notFound(res, 'Notification not found');
 
-  const updated = updateNotification(req.params.id, { isRead: true, readAt: new Date().toISOString() });
+  const updated = await markNotificationRead(req.params.id, req.user.id);
   return res.json(updated);
 });
 
-router.patch('/read-all', verifySupabase, (req, res) => {
+router.patch('/read-all', verifySupabase, async (req, res) => {
   if (!req.user) return unauthorized(res);
 
-  const items = listNotificationsForUser(req.user.id);
-  const now = new Date().toISOString();
-  for (const item of items) {
-    if (!item.isRead) updateNotification(item.id, { isRead: true, readAt: now });
-  }
+  await markAllNotificationsRead(req.user.id);
   return res.json({ success: true });
 });
 
-router.delete('/:id', verifySupabase, (req, res) => {
+router.delete('/:id', verifySupabase, async (req, res) => {
   if (!req.user) return unauthorized(res);
-  const record = getNotification(req.params.id);
-  if (!record || record.userId !== req.user.id) return notFound(res, 'Notification not found');
-  deleteNotification(req.params.id);
+  const record = await getNotificationForUser(req.params.id, req.user.id);
+  if (!record) return notFound(res, 'Notification not found');
+  await deleteNotificationForUser(req.params.id, req.user.id);
   return res.json({ success: true });
 });
 

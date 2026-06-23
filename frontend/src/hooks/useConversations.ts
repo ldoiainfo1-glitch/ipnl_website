@@ -64,6 +64,14 @@ export const useConversation = (conversationId: string) => {
     },
   });
 
+  const sendProfileDetailsMutation = useMutation({
+    mutationFn: () => messagesApi.sendProfileDetails(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: () => messagesApi.markAsRead(conversationId),
@@ -79,7 +87,10 @@ export const useConversation = (conversationId: string) => {
     isLoadingConversation,
     isLoadingMessages,
     sendMessage: sendMessageMutation.mutateAsync,
+    sendProfileDetails: sendProfileDetailsMutation.mutateAsync,
     markAsRead: markAsReadMutation.mutate,
+    markAsReadAsync: markAsReadMutation.mutateAsync,
     isSending: sendMessageMutation.isPending,
+    isSendingProfileDetails: sendProfileDetailsMutation.isPending,
   };
 };
