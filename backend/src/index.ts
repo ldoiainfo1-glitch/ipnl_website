@@ -42,3 +42,11 @@ server.listen(port, "0.0.0.0", () => {
   // eslint-disable-next-line no-console
   console.log(`Backend auth service listening on http://0.0.0.0:${port}`);
 });
+
+
+// Prevent transient Supabase network errors (ConnectTimeoutError) from
+// crashing the process in Node 22+. Express async middleware errors are
+// caught per-request; this guards against any that slip through.
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection] Caught - process will NOT exit:', reason);
+});

@@ -69,6 +69,18 @@ router.get('/me', verifySupabase, async (req, res) => {
 
     console.log('[PROFILE GET /me] Logo in DB:', data.logo);
 
+    // Auto-sync company_name from auth user_metadata if missing in profiles table
+    if (!data.company_name) {
+      const companyName: string = req.user.user_metadata?.companyName || '';
+      if (companyName) {
+        supabase.from('profiles')
+          .update({ company_name: companyName, updated_at: new Date().toISOString() })
+          .eq('id', req.user.id)
+          .then(undefined, (err: unknown) => console.error('[PROFILE /me] company_name sync failed:', err));
+        data.company_name = companyName;
+      }
+    }
+
     const [{ count: mandateCount }, { data: kycRow }] = await Promise.all([
       supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id),
       supabase.from('kyc_reviews').select('status').eq('user_id', req.user.id).maybeSingle(),

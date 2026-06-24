@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/apiError';
@@ -38,11 +38,32 @@ async function attachMandateOwners(supabase: NonNullable<ReturnType<typeof getSu
   const userIds = Array.from(new Set(mandates.map((mandate) => mandate.userId)));
   if (userIds.length === 0) return mandates;
 
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('*')
     .in('id', userIds);
-  const profileById = new Map((profiles ?? []).map((profile) => [profile.id, toUserDTO(profile)]));
+  if (profilesError) console.error('[attachMandateOwners] profiles query failed:', profilesError.message);
+
+  // Back-fill company_name from Supabase auth user_metadata for any profile missing it
+  const profilesWithName = await Promise.all((profiles ?? []).map(async (profile) => {
+    if (profile.company_name) return profile;
+    try {
+      const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
+      const companyName = authData?.user?.user_metadata?.companyName || '';
+      if (companyName) {
+        supabase.from('profiles').update({ company_name: companyName, updated_at: new Date().toISOString() })
+          .eq('id', profile.id)
+          .then(undefined, (err: unknown) => console.error('[attachMandateOwners] backfill failed:', err));
+        return { ...profile, company_name: companyName };
+      }
+    } catch (err: any) {
+      console.warn('[attachMandateOwners] auth lookup failed for', profile.id);
+    }
+    return profile;
+  }));
+  const profileById = new Map(
+    await Promise.all(profilesWithName.map(async (profile) => [profile.id, await toUserDTO(profile)] as const)),
+  );
 
   return mandates.map((mandate) => ({
     ...mandate,
@@ -220,8 +241,13 @@ router.get('/my', verifySupabase, async (req, res) => {
     if (reviewRowsError) return badRequest(res, reviewRowsError.message);
     const reviewMap = new Map((reviewRows ?? []).map((review: any) => [review.mandate_id, review]));
 
+    const items = await attachMandateOwners(
+      supabase,
+      (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), reviewMap.get(row.id))),
+    );
+
     return res.json({
-      items: (data || []).map((row) => attachMandateReviewMetadata(toMandateDTO(row), reviewMap.get(row.id))),
+      items,
       meta: {
         total,
         page: pageNum,

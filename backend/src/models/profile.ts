@@ -1,5 +1,5 @@
 import { Database } from '../types/database';
-import { createPrivateLogoObjectViewUrl } from '../lib/objectStorage';
+import { createPrivateLogoObjectViewUrl, createPrivateObjectViewUrl } from '../lib/objectStorage';
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 
@@ -10,8 +10,40 @@ interface UserStats {
   kycStatus?: 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 }
 
+/**
+ * Returns a usable logo URL or null.
+ * Detects which S3 bucket the logo is stored in and uses the correct
+ * credentials to sign the URL (main bucket vs logos bucket).
+ * - Placeholder URLs → null
+ * - URLs from logos bucket → signed with logos credentials
+ * - URLs from main bucket → signed with main bucket credentials
+ * - If signing is skipped (no credentials) → null (avoids 403 in the browser)
+ */
+async function resolveLogoUrl(rawUrl: string | null): Promise<string | null> {
+  if (!rawUrl) return null;
+  if (rawUrl.includes('placeholder.local')) return null;
+  try {
+    const logosBucket = (process.env.AWS_S3_LOGOS_BUCKET || 'ipnl-logos').trim();
+    const mainBucket = (process.env.AWS_S3_BUCKET || 'ipnl-bucket').trim();
+
+    // Use the correct signing function based on which bucket the URL references
+    const resolved = rawUrl.includes(mainBucket) && !rawUrl.includes(logosBucket)
+      ? await createPrivateObjectViewUrl(rawUrl)
+      : await createPrivateLogoObjectViewUrl(rawUrl);
+
+    if (resolved === rawUrl && /amazonaws\.com/i.test(rawUrl)) {
+      console.warn('[resolveLogoUrl] AWS credentials missing — logo will not be shown');
+      return null;
+    }
+    return resolved;
+  } catch (err: any) {
+    console.warn('[resolveLogoUrl] Failed to sign logo URL:', err.message);
+    return null;
+  }
+}
+
 export async function toUserDTO(row: ProfileRow, stats: UserStats = {}) {
-  const logo = row.logo ? await createPrivateLogoObjectViewUrl(row.logo) : null;
+  const logo = await resolveLogoUrl(row.logo);
 
   return {
     id: row.id,

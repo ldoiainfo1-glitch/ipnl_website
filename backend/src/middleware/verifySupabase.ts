@@ -28,7 +28,14 @@ export const verifySupabase: RequestHandler = async (req, res, next) => {
   if (!supabase) return serverError(res, 'Supabase is not configured on the server');
 
   try {
-    const { data, error } = await supabase.auth.getUser(token);
+    let data: Awaited<ReturnType<typeof supabase.auth.getUser>>['data'];
+    let error: Awaited<ReturnType<typeof supabase.auth.getUser>>['error'];
+    try {
+      ({ data, error } = await supabase.auth.getUser(token));
+    } catch (networkErr: any) {
+      console.error('[verifySupabase] Network error contacting Supabase:', networkErr?.cause?.message || networkErr?.message);
+      return res.status(503).json({ error: 'Auth service temporarily unavailable' });
+    }
     if (error || !data?.user) return unauthorized(res, 'Invalid or expired token');
 
     const { data: profile } = await supabase

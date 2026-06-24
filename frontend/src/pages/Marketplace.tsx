@@ -196,7 +196,19 @@ export default function Marketplace() {
                     {/* Company Logo */}
                     <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
                       {mandate.user?.logo ? (
-                        <img src={mandate.user.logo} alt={mandate.user.companyName} className="w-full h-full object-cover" />
+                        <>
+                          <img
+                            src={mandate.user.logo}
+                            alt={mandate.user.companyName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <Building2 className="w-7 h-7 text-muted-foreground" style={{ display: 'none' }} />
+                        </>
                       ) : (
                         <Building2 className="w-7 h-7 text-muted-foreground" />
                       )}
