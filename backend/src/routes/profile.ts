@@ -75,11 +75,7 @@ router.get('/me', verifySupabase, async (req, res) => {
     const sent = intros.filter((i) => i.senderId === req.user!.id).length;
     const received = intros.filter((i) => i.receiverId === req.user!.id).length;
 
-<<<<<<< HEAD
-    const user = toUserDTO(data, {
-=======
-    return res.json(await toUserDTO(data, {
->>>>>>> 904720a (feat: Add image crop modal and fix S3 logo upload with region config)
+    const user = await toUserDTO(data, {
       mandatesPosted: mandateCount ?? 0,
       introsSent: sent,
       introsReceived: received,
@@ -150,10 +146,6 @@ router.patch('/me', verifySupabase, async (req, res) => {
 });
 
 router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandler, async (req: express.Request, res: express.Response) => {
-<<<<<<< HEAD
-  try {
-    if (!req.user) return unauthorized(res);
-    if (!req.file) return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
   console.log('[LOGO UPLOAD] Request received');
   if (!req.user) return unauthorized(res);
   if (!req.file) {
@@ -161,17 +153,17 @@ router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandl
     return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
   }
 
-  console.log('[LOGO UPLOAD] File received:', { 
-    mimetype: req.file.mimetype, 
+  console.log('[LOGO UPLOAD] File received:', {
+    mimetype: req.file.mimetype,
     size: req.file.size,
-    originalname: req.file.originalname
+    originalname: req.file.originalname,
   });
 
   try {
     const uploadedExt = req.file.mimetype === 'image/jpeg' ? 'jpg' : req.file.mimetype.split('/')[1] || 'webp';
     const path = createUploadPath('logos', req.user.id, uploadedExt);
     console.log('[LOGO UPLOAD] Uploading to path:', path);
-    
+
     const uploaded = await uploadLogoObject({
       path,
       body: req.file.buffer,
@@ -195,13 +187,17 @@ router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandl
     }
 
     console.log('[LOGO UPLOAD] ✓ Success, returning response');
-      return res.json({
-        logo: await createPrivateLogoObjectViewUrl(data.logo ?? uploaded.url),
-        storage: getStorageInfo(),
-      });
+    return res.json({
+      logo: await createPrivateLogoObjectViewUrl(data.logo ?? uploaded.url),
+      storage: getStorageInfo(),
+    });
   } catch (err: any) {
     console.error('[LOGO UPLOAD] ✗ Error:', err.message);
     return serverError(res, err.message);
+  }
+});
+
+router.get('/members', verifySupabase, async (req, res) => {
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) return serverError(res, 'Supabase not configured');
@@ -246,11 +242,7 @@ router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandl
       const { data: kycRow } = await supabase
         .from('kyc_reviews').select('status').eq('user_id', row.id).maybeSingle();
       const intros = listIntros();
-<<<<<<< HEAD
-      const user = toUserDTO(row, {
-=======
-      return await toUserDTO(row, {
->>>>>>> 904720a (feat: Add image crop modal and fix S3 logo upload with region config)
+      const user = await toUserDTO(row, {
         mandatesPosted: mandateCount ?? 0,
         introsSent: intros.filter((i) => i.senderId === row.id).length,
         introsReceived: intros.filter((i) => i.receiverId === row.id).length,
