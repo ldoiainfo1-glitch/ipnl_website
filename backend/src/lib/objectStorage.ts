@@ -177,12 +177,12 @@ export async function uploadLogoObject(
 export async function createPrivateObjectViewUrl(
   urlOrPath: string,
   expiresInSeconds = 900,
-): Promise<string> {
+): Promise<string | null> {
   const urlConfig = parseS3UrlConfig(urlOrPath);
   const config = urlConfig ?? getConfig();
-  if (config.provider !== 's3') return urlOrPath;
+  if (config.provider !== 's3') return null;
   const client = urlConfig ? getS3LogosClient(config) : getS3Client(config);
-  if (!client) return urlOrPath;
+  if (!client) return null;
   const key = getObjectKeyFromUrl(urlOrPath);
   return getSignedUrl(
     client,
@@ -194,12 +194,14 @@ export async function createPrivateObjectViewUrl(
 export async function createPrivateLogoObjectViewUrl(
   urlOrPath: string,
   expiresInSeconds = 60 * 60 * 24,
-): Promise<string> {
+): Promise<string | null> {
   const urlConfig = parseS3UrlConfig(urlOrPath);
   const config = urlConfig ?? getLogosConfig();
-  if (config.provider !== 's3') return urlOrPath;
+  // placeholder URL (no S3 configured) – no usable image
+  if (config.provider !== 's3') return null;
   const client = getS3LogosClient(config);
-  if (!client) return urlOrPath;
+  // S3 URL but credentials missing – returning unsigned private URL would be broken
+  if (!client) return null;
   const key = getObjectKeyFromUrl(urlOrPath);
   return getSignedUrl(
     client,

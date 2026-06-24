@@ -231,6 +231,9 @@ export default function Profile() {
                     src={displayedLogo}
                     alt="Company logo"
                     className="w-full h-full object-cover object-center"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    }}
                   />
                 ) : (
                   <Building2 className="w-10 h-10 text-muted-foreground" />
