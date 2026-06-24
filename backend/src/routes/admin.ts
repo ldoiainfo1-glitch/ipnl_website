@@ -40,7 +40,7 @@ async function rowToKycDoc(row: any, user?: any) {
     reviewedAt: row.reviewed_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    user: user ? toUserDTO(user, { kycStatus: row.status }) : undefined,
+    user: user ? await toUserDTO(user, { kycStatus: row.status }) : undefined,
   };
 }
 
@@ -367,17 +367,21 @@ router.get('/mandates', verifySupabase, async (req, res) => {
     const { data: profiles } = userIds.length
       ? await supabase.from('profiles').select('*').in('id', userIds)
       : { data: [] };
-    const profileMap = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+    const profileById = new Map(
+      await Promise.all((profiles ?? []).map(async (profile) => {
+        const user = await toUserDTO(profile, { kycStatus: kycStatusMap.get(profile.id) as any });
+        return [profile.id, user] as const;
+      }))
+    );
 
     return res.json((data ?? []).map((row) => {
       const mandate = toMandateDTO(row);
       const review = reviewMap.get(mandate.id);
-      const owner = profileMap.get(row.user_id);
-      const ownerKycStatus = kycStatusMap.get(row.user_id) ?? owner?.kyc_status ?? 'NOT_SUBMITTED';
+      const user = profileById.get(row.user_id);
       return {
         ...mandate,
-        user: owner ? toUserDTO(owner, { kycStatus: ownerKycStatus as any }) : undefined,
-        ownerKycStatus,
+        user,
+        ownerKycStatus: kycStatusMap.get(row.user_id) ?? 'NOT_SUBMITTED',
         moderationStatus: review?.status ?? 'PENDING',
         moderationNote: review?.note,
         moderationReviewedBy: review?.reviewedBy,

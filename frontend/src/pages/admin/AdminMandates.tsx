@@ -271,6 +271,15 @@ export default function AdminMandates() {
                   }}
                   className="flex items-start gap-4 p-4 border border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
                 >
+                  {/* Company Logo */}
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                    {mandate.user?.logo ? (
+                      <img src={mandate.user.logo} alt={mandate.user.companyName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
@@ -291,7 +300,6 @@ export default function AdminMandates() {
                     </div>
                     <h3 className="font-semibold truncate hover:text-primary">{mandate.title}</h3>
                     <div className="flex items-center gap-2 text-sm mt-1">
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
                       <button
                         type="button"
                         onClick={(event) => {

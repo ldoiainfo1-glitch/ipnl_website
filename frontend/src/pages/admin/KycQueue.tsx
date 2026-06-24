@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, Eye, FileText, Clock, ShieldCheck } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, FileText, Clock, ShieldCheck, Building2 } from 'lucide-react';
 import { formatDate, formatIndianNumber } from '@/utils/formatters';
 
 function statusToLabel(status: KycStatus) {
@@ -267,8 +267,17 @@ export default function KycQueue() {
               key={doc.id}
               className="border border-border rounded-lg p-4 space-y-3"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1 flex-1">
+              <div className="flex items-start gap-4">
+                {/* Company Logo */}
+                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                  {doc.user?.logo ? (
+                    <img src={doc.user.logo} alt={doc.user.companyName} className="w-full h-full object-cover" />
+                  ) : (
+                    <Building2 className="w-6 h-6 text-muted-foreground" />
+                  )}
+                </div>
+
+                <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">{getKycSubjectLabel(doc)}</span>
                     <Badge variant={statusBadgeVariant(doc.status) as any}>
@@ -397,8 +406,17 @@ export default function KycQueue() {
                 key={doc.id}
                 className="border border-border rounded-lg p-4"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
+                <div className="flex items-start gap-4">
+                  {/* Company Logo */}
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                    {doc.user?.logo ? (
+                      <img src={doc.user.logo} alt={doc.user.companyName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{getKycSubjectLabel(doc)}</span>
                       <Badge variant={statusBadgeVariant(doc.status) as any}>

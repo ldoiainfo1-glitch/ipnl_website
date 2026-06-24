@@ -14,6 +14,7 @@ import { unauthorized, serverError } from '../utils/apiError';
  * supabase/migrations/*.sql are the second line of defense.
  */
 export const verifySupabase: RequestHandler = async (req, res, next) => {
+  console.log(`[VERIFY] ${req.method} ${req.path}`);
   const auth = req.headers.authorization;
   if (!auth) return unauthorized(res, 'Missing Authorization header');
 

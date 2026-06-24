@@ -1,12 +1,16 @@
 import { useAuthStore } from '@/store/authStore';
+import { useMyProfile } from '@/hooks/useProfile';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Building2 } from 'lucide-react';
 import { TIER_FEATURES } from '@/utils/constants';
 import { UserTier } from '@/types';
 
 export default function Settings() {
   const { user } = useAuthStore();
+  const { profile } = useMyProfile();
+  const effectiveUser = profile ?? user;
 
   const handleUpgrade = (tier: string) => {
     alert(`Upgrade to ${tier} tier\n\nIn production, this would:\n- Redirect to payment gateway\n- Process subscription payment\n- Update your account tier\n\nContact: sales@ipnl.com for Enterprise`);
@@ -38,9 +42,18 @@ export default function Settings() {
           <CardTitle>Account Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Company Name</p>
-            <p className="font-medium">{user?.companyName}</p>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+              {effectiveUser?.logo ? (
+                <img src={effectiveUser.logo} alt={effectiveUser.companyName} className="w-full h-full object-cover" />
+              ) : (
+                <Building2 className="w-8 h-8 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Company Name</p>
+              <p className="font-semibold text-lg">{effectiveUser?.companyName || '—'}</p>
+            </div>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Email</p>

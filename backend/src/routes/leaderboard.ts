@@ -1,9 +1,9 @@
 import express from 'express';
-import { getSupabaseAdmin } from '../lib/supabaseServer';
-import { verifySupabase } from '../middleware/verifySupabase';
-import { serverError, unauthorized } from '../utils/apiError';
-import { toUserDTO } from '../models/profile';
-import { getReputationStatsForUsers } from '../lib/reputation';
+import { getSupabaseAdmin } from '../lib/supabaseServer.js';
+import { verifySupabase } from '../middleware/verifySupabase.js';
+import { serverError, unauthorized } from '../utils/apiError.js';
+import { toUserDTO } from '../models/profile.js';
+import { getReputationStatsForUsers } from '../lib/reputation.js';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.get('/', verifySupabase, async (req, res) => {
 
     const reputationByUser = await getReputationStatsForUsers((profiles ?? []).map((profile) => profile.id));
 
-    const rows = (profiles || []).map((p) => {
+    const rows = await Promise.all((profiles || []).map(async (p) => {
       const reputation = reputationByUser.get(p.id) ?? {
         reputationScore: p.reputation_score ?? 0,
         averageRating: 0,
@@ -30,7 +30,7 @@ router.get('/', verifySupabase, async (req, res) => {
         approvedMandates: 0,
         scoreBreakdown: { verification: 0, reviews: 0, activity: 0 },
       };
-      const user = toUserDTO(p, {
+      const user = await toUserDTO(p, {
         mandatesPosted: reputation.approvedMandates,
         introsSent: 0,
         introsReceived: 0,
@@ -47,7 +47,7 @@ router.get('/', verifySupabase, async (req, res) => {
         reviewCount: reputation.reviewCount,
         scoreBreakdown: reputation.scoreBreakdown,
       };
-    });
+    }));
 
     rows.sort((a, b) => b.reputationScore - a.reputationScore);
 

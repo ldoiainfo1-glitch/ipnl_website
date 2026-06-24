@@ -18,13 +18,13 @@ function normalizeOptionalText(value: unknown): string | null | undefined {
   return text ? text : null;
 }
 
-async function withSignedLogo<T extends { logo?: string }>(input: T): Promise<T> {
+async function withSignedLogo<T extends { logo?: string | null }>(input: T): Promise<T> {
   if (!input.logo) return input;
 
   try {
     return {
       ...input,
-      logo: await createPrivateObjectViewUrl(input.logo, 3600),
+      logo: await createPrivateLogoObjectViewUrl(input.logo, 3600),
     };
   } catch {
     return input;
@@ -53,6 +53,7 @@ async function getApprovedLiveMandatesForUser(supabase: NonNullable<ReturnType<t
 }
 
 router.get('/me', verifySupabase, async (req, res) => {
+  console.log('[PROFILE GET /me] Request from user:', req.user?.email);
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) return serverError(res, 'Supabase not configured');
@@ -65,6 +66,8 @@ router.get('/me', verifySupabase, async (req, res) => {
       .single();
 
     if (error || !data) return notFound(res, 'Profile not found');
+
+    console.log('[PROFILE GET /me] Logo in DB:', data.logo);
 
     const [{ count: mandateCount }, { data: kycRow }] = await Promise.all([
       supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id),
@@ -82,7 +85,9 @@ router.get('/me', verifySupabase, async (req, res) => {
       kycStatus: (kycRow as any)?.status,
     });
 
-    return res.json(await withSignedLogo(user));
+    const result = await withSignedLogo(user);
+    console.log('[PROFILE GET /me] Signed logo URL:', result.logo);
+    return res.json(result);
   } catch (err: any) {
     return serverError(res, err.message);
   }
@@ -248,7 +253,7 @@ router.get('/members', verifySupabase, async (req, res) => {
         introsReceived: intros.filter((i) => i.receiverId === row.id).length,
         kycStatus: (kycRow as any)?.status,
       });
-      return withSignedLogo(user);
+      return await withSignedLogo(user);
     }));
 
     return res.json(members.filter((member) => member.kycStatus === 'APPROVED'));

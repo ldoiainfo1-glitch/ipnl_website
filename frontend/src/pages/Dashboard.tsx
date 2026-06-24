@@ -159,10 +159,19 @@ export default function Dashboard() {
               {myMandates.slice(0, 5).map((mandate) => (
                 <div
                   key={mandate.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:border-primary cursor-pointer transition-colors"
+                  className="flex items-center gap-4 p-4 border border-border rounded-lg hover:border-primary cursor-pointer transition-colors"
                   onClick={() => navigate(`/mandates/${mandate.id}`)}
                 >
-                  <div className="flex-1">
+                  {/* Company Logo */}
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                    {mandate.user?.logo ? (
+                      <img src={mandate.user.logo} alt={mandate.user.companyName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
                       <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
                         {mandate.type}
@@ -173,7 +182,7 @@ export default function Dashboard() {
                     </div>
                     <h4 className="font-medium">{mandate.title}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {mandate.city} • {formatRelativeTime(mandate.createdAt)}
+                      {mandate.user?.companyName || 'Unknown company'} • {mandate.city} • {formatRelativeTime(mandate.createdAt)}
                     </p>
                     {mandate.moderationStatus === 'REJECTED' && mandate.moderationNote && (
                       <p className="text-sm text-destructive mt-2">

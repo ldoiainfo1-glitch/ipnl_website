@@ -33,7 +33,7 @@ async function deleteExpiredSeenMessages(supabase: NonNullable<ReturnType<typeof
     .lte('expires_at', new Date().toISOString());
 }
 
-function createProfileCardContent(user: ReturnType<typeof toUserDTO>): string {
+function createProfileCardContent(user: any): string {
   return JSON.stringify({
     type: PROFILE_CARD_MESSAGE_TYPE,
     profile: {
@@ -423,3 +423,4 @@ router.patch('/:conversationId/read', verifySupabase, async (req, res) => {
 });
 
 export default router;
+

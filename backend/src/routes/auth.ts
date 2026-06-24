@@ -118,7 +118,7 @@ router.get('/me', async (req, res) => {
 
     const metadataRole = String(data.user.user_metadata?.role || data.user.app_metadata?.role || '').toUpperCase();
     const user = profile
-      ? toUserDTO(
+      ? await toUserDTO(
           {
             ...profile,
             role: metadataRole === 'ADMIN' ? 'ADMIN' : profile.role,

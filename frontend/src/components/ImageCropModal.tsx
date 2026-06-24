@@ -20,10 +20,20 @@ export function ImageCropModal({ imageUrl, onCropComplete, onCancel }: ImageCrop
   });
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const [rotation, setRotation] = useState(0);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 
   const handleCropComplete = useCallback(async () => {
-    if (!completedCrop || !imageRef.current) return;
+    // Use completedCrop if available, otherwise calculate from current crop
+    const cropToUse = completedCrop || (isImageLoaded && imageRef.current ? {
+      x: (crop.x / 100) * imageRef.current.width,
+      y: (crop.y / 100) * imageRef.current.height,
+      width: (crop.width / 100) * imageRef.current.width,
+      height: (crop.height / 100) * imageRef.current.height,
+      unit: 'px' as const,
+    } : null);
+
+    if (!cropToUse || !imageRef.current) return;
 
     const image = imageRef.current;
     const canvas = document.createElement('canvas');
@@ -38,10 +48,10 @@ export function ImageCropModal({ imageUrl, onCropComplete, onCancel }: ImageCrop
     if (!ctx) return;
 
     // Calculate crop dimensions in natural image coordinates
-    const cropX = completedCrop.x * scaleX;
-    const cropY = completedCrop.y * scaleY;
-    const cropWidth = completedCrop.width * scaleX;
-    const cropHeight = completedCrop.height * scaleY;
+    const cropX = cropToUse.x * scaleX;
+    const cropY = cropToUse.y * scaleY;
+    const cropWidth = cropToUse.width * scaleX;
+    const cropHeight = cropToUse.height * scaleY;
 
     // Handle rotation
     if (rotation !== 0) {
@@ -75,7 +85,7 @@ export function ImageCropModal({ imageUrl, onCropComplete, onCancel }: ImageCrop
       'image/webp',
       0.9
     );
-  }, [completedCrop, rotation, onCropComplete]);
+  }, [completedCrop, crop, rotation, isImageLoaded, onCropComplete]);
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
@@ -111,6 +121,7 @@ export function ImageCropModal({ imageUrl, onCropComplete, onCancel }: ImageCrop
                 ref={imageRef}
                 src={imageUrl}
                 alt="Crop preview"
+                onLoad={() => setIsImageLoaded(true)}
                 className="max-h-[500px] max-w-full"
                 style={{
                   transform: `rotate(${rotation}deg)`,
@@ -150,7 +161,7 @@ export function ImageCropModal({ imageUrl, onCropComplete, onCancel }: ImageCrop
             <Button
               type="button"
               onClick={handleCropComplete}
-              disabled={!completedCrop}
+              disabled={!isImageLoaded}
             >
               Apply & Upload
             </Button>

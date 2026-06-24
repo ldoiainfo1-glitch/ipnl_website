@@ -52,13 +52,14 @@ export const useMyProfile = () => {
     mutationFn: ({ data, onProgress }: { data: UpdateLogoRequest; onProgress?: (progress: number) => void }) =>
       profileApi.updateLogo(data, onProgress),
     onSuccess: (response) => {
-      const logoUpdate = { logo: response.data.logo };
+      const logoUrl = response.data.logo;
+      const logoUpdate = { logo: logoUrl };
       syncAuthUser(logoUpdate);
       queryClient.setQueryData<User | undefined>(['myProfile'], (current) =>
-        current ? { ...current, ...logoUpdate } : current,
+        current ? { ...current, logo: logoUrl } : current,
       );
       queryClient.setQueryData<User | undefined>(['currentUser'], (current) =>
-        current ? { ...current, ...logoUpdate } : current,
+        current ? { ...current, logo: logoUrl } : current,
       );
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });

@@ -192,8 +192,17 @@ export default function Marketplace() {
                 onClick={() => navigate(`/mandates/${mandate.id}`)}
               >
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-4">
+                    {/* Company Logo */}
+                    <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                      {mandate.user?.logo ? (
+                        <img src={mandate.user.logo} alt={mandate.user.companyName} className="w-full h-full object-cover" />
+                      ) : (
+                        <Building2 className="w-7 h-7 text-muted-foreground" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3 mb-3">
                         <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
                           {mandate.type}
@@ -212,6 +221,10 @@ export default function Marketplace() {
 
                       <div className="flex items-center space-x-6 text-sm">
                         <div className="flex items-center text-muted-foreground">
+                          <Building2 className="w-4 h-4 mr-1" />
+                          {mandate.user?.companyName || 'Unknown company'}
+                        </div>
+                        <div className="flex items-center text-muted-foreground">
                           <MapPin className="w-4 h-4 mr-1" />
                           {mandate.city}, {mandate.state}
                         </div>
@@ -225,7 +238,7 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <div className="ml-6 text-right">
+                    <div className="ml-6 text-right shrink-0">
                       <p className="text-2xl font-bold text-primary">
                         {formatIndianNumber(mandate.ticketSize)}
                       </p>
