@@ -132,8 +132,24 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'ipn-auth-storage',
+      version: 2,
+      migrate: (persistedState: any) => {
+        if (!persistedState || typeof persistedState !== 'object') return persistedState;
+        if (persistedState.user && typeof persistedState.user === 'object') {
+          persistedState.user = {
+            ...persistedState.user,
+            logo: undefined,
+          };
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
-        user: state.user,
+        user: state.user
+          ? {
+              ...state.user,
+              logo: undefined,
+            }
+          : null,
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
