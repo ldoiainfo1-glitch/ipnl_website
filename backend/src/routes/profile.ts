@@ -4,7 +4,7 @@ import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/apiError';
 import { toUserDTO } from '../models/profile';
 import { listIntros } from '../lib/runtimeStore';
-import { createPrivateObjectViewUrl, createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
+import { createPrivateObjectViewUrl, createPrivateLogoObjectViewUrl, createUploadPath, getStorageInfo, uploadLogoObject } from '../lib/objectStorage';
 import { upload, uploadErrorHandler } from '../middleware/upload';
 import { toMandateDTO } from '../models/mandate';
 import type { Database } from '../types/database';
@@ -75,7 +75,11 @@ router.get('/me', verifySupabase, async (req, res) => {
     const sent = intros.filter((i) => i.senderId === req.user!.id).length;
     const received = intros.filter((i) => i.receiverId === req.user!.id).length;
 
+<<<<<<< HEAD
     const user = toUserDTO(data, {
+=======
+    return res.json(await toUserDTO(data, {
+>>>>>>> 904720a (feat: Add image crop modal and fix S3 logo upload with region config)
       mandatesPosted: mandateCount ?? 0,
       introsSent: sent,
       introsReceived: received,
@@ -106,6 +110,7 @@ router.patch('/me', verifySupabase, async (req, res) => {
       ticketSizeMin,
       ticketSizeMax,
     } = req.body as Record<string, any>;
+
     const patch: ProfileUpdate = {};
     if (companyName !== undefined) patch.company_name = companyName;
     if (mobile !== undefined) patch.mobile = normalizeOptionalText(mobile);
@@ -131,7 +136,7 @@ router.patch('/me', verifySupabase, async (req, res) => {
       supabase.from('kyc_reviews').select('status').eq('user_id', req.user.id).maybeSingle(),
     ]);
     const intros2 = listIntros();
-    const user = toUserDTO(data, {
+    const user = await toUserDTO(data, {
       mandatesPosted: mandateCount2 ?? 0,
       introsSent: intros2.filter((i) => i.senderId === req.user!.id).length,
       introsReceived: intros2.filter((i) => i.receiverId === req.user!.id).length,
@@ -145,22 +150,35 @@ router.patch('/me', verifySupabase, async (req, res) => {
 });
 
 router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandler, async (req: express.Request, res: express.Response) => {
+<<<<<<< HEAD
   try {
     if (!req.user) return unauthorized(res);
     if (!req.file) return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
+  console.log('[LOGO UPLOAD] Request received');
+  if (!req.user) return unauthorized(res);
+  if (!req.file) {
+    console.log('[LOGO UPLOAD] No file in request');
+    return badRequest(res, 'logo file is required (multipart/form-data, field name: logo)');
+  }
 
-    const ext = req.file.mimetype === 'image/png'
-      ? 'png'
-      : req.file.mimetype === 'image/webp'
-        ? 'webp'
-        : 'jpg';
+  console.log('[LOGO UPLOAD] File received:', { 
+    mimetype: req.file.mimetype, 
+    size: req.file.size,
+    originalname: req.file.originalname
+  });
 
-    const path = createUploadPath('logos', req.user.id, ext);
-    const uploaded = await uploadObject({
+  try {
+    const uploadedExt = req.file.mimetype === 'image/jpeg' ? 'jpg' : req.file.mimetype.split('/')[1] || 'webp';
+    const path = createUploadPath('logos', req.user.id, uploadedExt);
+    console.log('[LOGO UPLOAD] Uploading to path:', path);
+    
+    const uploaded = await uploadLogoObject({
       path,
       body: req.file.buffer,
       contentType: req.file.mimetype,
     });
+
+    console.log('[LOGO UPLOAD] Upload result:', uploaded);
 
     const supabase = getSupabaseAdmin();
     if (!supabase) return serverError(res, 'Supabase not configured');
@@ -171,20 +189,19 @@ router.patch('/me/logo', verifySupabase, upload.single('logo'), uploadErrorHandl
       .eq('id', req.user.id)
       .select('logo')
       .single();
-    if (error || !data) return badRequest(res, error?.message ?? 'Unable to save logo');
+    if (error || !data) {
+      console.log('[LOGO UPLOAD] Database update failed:', error?.message);
+      return badRequest(res, error?.message ?? 'Unable to save logo');
+    }
 
-    const signedLogo = data.logo ? await createPrivateObjectViewUrl(data.logo, 3600) : data.logo;
-
-    return res.json({
-      logo: signedLogo,
-      storage: getStorageInfo(),
-    });
+    console.log('[LOGO UPLOAD] ✓ Success, returning response');
+      return res.json({
+        logo: await createPrivateLogoObjectViewUrl(data.logo ?? uploaded.url),
+        storage: getStorageInfo(),
+      });
   } catch (err: any) {
-    return serverError(res, err?.message ?? 'Unable to upload logo');
-  }
-});
-
-router.get('/members', verifySupabase, async (req, res) => {
+    console.error('[LOGO UPLOAD] ✗ Error:', err.message);
+    return serverError(res, err.message);
   try {
     const supabase = getSupabaseAdmin();
     if (!supabase) return serverError(res, 'Supabase not configured');
@@ -229,7 +246,11 @@ router.get('/members', verifySupabase, async (req, res) => {
       const { data: kycRow } = await supabase
         .from('kyc_reviews').select('status').eq('user_id', row.id).maybeSingle();
       const intros = listIntros();
+<<<<<<< HEAD
       const user = toUserDTO(row, {
+=======
+      return await toUserDTO(row, {
+>>>>>>> 904720a (feat: Add image crop modal and fix S3 logo upload with region config)
         mandatesPosted: mandateCount ?? 0,
         introsSent: intros.filter((i) => i.senderId === row.id).length,
         introsReceived: intros.filter((i) => i.receiverId === row.id).length,
@@ -265,7 +286,7 @@ router.get('/members/:id', verifySupabase, async (req, res) => {
     if ((kycRow3 as any)?.status !== 'APPROVED') return notFound(res, 'Member not found');
 
     const intros3 = listIntros();
-    const user = toUserDTO(data, {
+    const user = await toUserDTO(data, {
       mandatesPosted: mandateCount3 ?? 0,
       introsSent: intros3.filter((i) => i.senderId === data.id).length,
       introsReceived: intros3.filter((i) => i.receiverId === data.id).length,

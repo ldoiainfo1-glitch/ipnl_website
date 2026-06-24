@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES } from '@/utils/constants';
 import { formatIndianNumber } from '@/utils/formatters';
 import { ShieldCheck, Upload, Globe, Linkedin, Building2, Star, AlertCircle } from 'lucide-react';
+import { ImageCropModal } from '@/components/ImageCropModal';
 
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
@@ -81,6 +82,7 @@ export default function Profile() {
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [isLogoDragActive, setIsLogoDragActive] = useState(false);
+  const [cropModalImage, setCropModalImage] = useState<string | null>(null);
   const logoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -128,30 +130,47 @@ export default function Profile() {
 
   const processLogoFile = async (file: File | null) => {
     if (!file) return;
-
     setLogoUploadError(null);
 
     if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
       setLogoUploadError('Only PNG, JPG/JPEG, and WEBP files are allowed.');
       return;
     }
-
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
       setLogoUploadError('Logo size must be 5 MB or smaller.');
       return;
     }
 
-    const nextPreviewUrl = URL.createObjectURL(file);
-    if (logoPreviewUrl) {
-      URL.revokeObjectURL(logoPreviewUrl);
+    // Show crop modal
+    const imageUrl = URL.createObjectURL(file);
+    setCropModalImage(imageUrl);
+  };
+
+  const handleCropComplete = async (croppedFile: File) => {
+    // Clean up crop modal
+    if (cropModalImage) {
+      URL.revokeObjectURL(cropModalImage);
+      setCropModalImage(null);
     }
-    setLogoPreviewUrl(nextPreviewUrl);
+
+    // Create preview and upload
+    const previewUrl = URL.createObjectURL(croppedFile);
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    setLogoPreviewUrl(previewUrl);
 
     try {
-      await updateLogo({ logo: file });
-      setLogoPreviewUrl(null);
+      await updateLogo({ logo: croppedFile });
     } catch {
       setLogoUploadError('Logo upload failed. Please try again.');
+      URL.revokeObjectURL(previewUrl);
+      setLogoPreviewUrl(null);
+    }
+  };
+
+  const handleCropCancel = () => {
+    if (cropModalImage) {
+      URL.revokeObjectURL(cropModalImage);
+      setCropModalImage(null);
     }
   };
 
@@ -210,7 +229,7 @@ export default function Profile() {
                   <img
                     src={displayedLogo}
                     alt="Company logo"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <Building2 className="w-10 h-10 text-muted-foreground" />
@@ -282,6 +301,7 @@ export default function Profile() {
               </div>
             </div>
           </div>
+
           {(isUploadingLogo || logoUploadProgress !== null) && (
             <div className="mt-4 space-y-1">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -307,7 +327,6 @@ export default function Profile() {
 
       {/* Edit form */}
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Basic Info */}
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
@@ -381,7 +400,6 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Location */}
         <Card>
           <CardHeader>
             <CardTitle>Location</CardTitle>
@@ -419,7 +437,6 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Asset Preferences */}
         <Card>
           <CardHeader>
             <CardTitle>Asset Preferences</CardTitle>
@@ -432,7 +449,6 @@ export default function Profile() {
               selected={form.assetPreferences}
               onChange={(v) => setForm({ ...form, assetPreferences: v })}
             />
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="space-y-1">
                 <Label htmlFor="ticketSizeMin">Min Ticket Size (₹)</Label>
@@ -479,6 +495,15 @@ export default function Profile() {
           )}
         </div>
       </form>
+
+      {/* Crop Modal */}
+      {cropModalImage && (
+        <ImageCropModal
+          imageUrl={cropModalImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 }
