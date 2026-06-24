@@ -24,6 +24,7 @@ export const profileApi = {
     formData.append('logo', data.logo);
     return apiClient.patch<{ logo: string }>('/profile/me/logo', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000, // 2 minutes — EC2→S3 upload can take time
       onUploadProgress: (event) => {
         onProgress?.(toUploadPercent(event));
       },

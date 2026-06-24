@@ -149,20 +149,28 @@ export async function uploadLogoObject(
   }
   try {
     console.log('[UPLOAD LOGO] Sending to S3:', { bucket: config.bucket, key: cleanPath, region: config.region });
-    await client.send(
-      new PutObjectCommand({
-        Bucket: config.bucket,
-        Key: cleanPath,
-        Body: input.body,
-        ContentType: input.contentType,
-      }),
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20_000);
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: config.bucket,
+          Key: cleanPath,
+          Body: input.body,
+          ContentType: input.contentType,
+        }),
+        { abortSignal: controller.signal },
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
     console.log('[UPLOAD LOGO] ✓ Successfully uploaded to S3');
     return { url, provider: 's3' };
   } catch (error: any) {
-    console.error('[UPLOAD LOGO] ✗ S3 upload failed:', error.message);
+    const msg = error?.name === 'AbortError' ? 'S3 upload timed out after 20s' : error.message;
+    console.error('[UPLOAD LOGO] ✗ S3 upload failed:', msg);
     console.error('[UPLOAD LOGO] Error details:', { code: error.Code, statusCode: error.$metadata?.httpStatusCode });
-    throw error;
+    throw new Error(msg);
   }
 }
 
