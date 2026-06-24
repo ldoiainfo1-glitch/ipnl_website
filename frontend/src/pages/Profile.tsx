@@ -160,8 +160,9 @@ export default function Profile() {
 
     try {
       await updateLogo({ logo: croppedFile });
-    } catch {
-      setLogoUploadError('Logo upload failed. Please try again.');
+    } catch (err: any) {
+      const detail = err?.detail || err?.message || 'Unknown error';
+      setLogoUploadError(`Logo upload failed: ${detail}`);
       URL.revokeObjectURL(previewUrl);
       setLogoPreviewUrl(null);
     }

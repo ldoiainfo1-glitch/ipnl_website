@@ -170,9 +170,10 @@ export async function createPrivateObjectViewUrl(
   urlOrPath: string,
   expiresInSeconds = 900,
 ): Promise<string> {
-  const config = getConfig();
+  const urlConfig = parseS3UrlConfig(urlOrPath);
+  const config = urlConfig ?? getConfig();
   if (config.provider !== 's3') return urlOrPath;
-  const client = getS3Client(config);
+  const client = urlConfig ? getS3LogosClient(config) : getS3Client(config);
   if (!client) return urlOrPath;
   const key = getObjectKeyFromUrl(urlOrPath);
   return getSignedUrl(
