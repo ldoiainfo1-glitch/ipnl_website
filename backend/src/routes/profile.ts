@@ -4,7 +4,7 @@ import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/apiError';
 import { toUserDTO } from '../models/profile';
 import { listIntros } from '../lib/runtimeStore';
-import { createPrivateObjectViewUrl, createPrivateLogoObjectViewUrl, createUploadPath, getStorageInfo, uploadLogoObject } from '../lib/objectStorage';
+import { createPrivateLogoObjectViewUrl, createUploadPath, getStorageInfo, uploadLogoObject } from '../lib/objectStorage';
 import { upload, uploadErrorHandler } from '../middleware/upload';
 import { toMandateDTO } from '../models/mandate';
 import type { Database } from '../types/database';
@@ -24,7 +24,7 @@ async function withSignedLogo<T extends { logo?: string | null }>(input: T): Pro
   try {
     return {
       ...input,
-      logo: await createPrivateLogoObjectViewUrl(input.logo, 3600),
+      logo: await createPrivateLogoObjectViewUrl(input.logo),
     };
   } catch {
     return input;
