@@ -1,9 +1,9 @@
 import express from 'express';
-import { getSupabaseAdmin } from '../lib/supabaseServer.js';
-import { verifySupabase } from '../middleware/verifySupabase.js';
-import { serverError, unauthorized } from '../utils/apiError.js';
-import { toUserDTO } from '../models/profile.js';
-import { getReputationStatsForUsers } from '../lib/reputation.js';
+import { getSupabaseAdmin } from '../lib/supabaseServer';
+import { verifySupabase } from '../middleware/verifySupabase';
+import { serverError, unauthorized } from '../utils/apiError';
+import { toUserDTO } from '../models/profile';
+import { getReputationStatsForUsers } from '../lib/reputation';
 
 const router = express.Router();
 
