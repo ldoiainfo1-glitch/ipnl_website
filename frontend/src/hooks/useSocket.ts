@@ -76,7 +76,7 @@ export const useSocket = () => {
       if (Notification.permission === 'granted') {
         new Notification(notification.title, {
           body: notification.message,
-          icon: '/logo.png',
+          icon: '/assets/ipnl-logo.png?v=1',
         });
       }
     });

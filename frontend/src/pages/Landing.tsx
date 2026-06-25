@@ -111,7 +111,7 @@ export default function Landing() {
           {/* Logo */}
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
             <img 
-              src="/assets/ipnl-logo.jpeg?v=2" 
+              src="/assets/ipnl-logo.png?v=1" 
               alt="India Property Network Ltd" 
               className="h-12 md:h-16 w-auto"
               onError={(e) => {
@@ -714,7 +714,7 @@ export default function Landing() {
               {/* Logo */}
               <div className="flex items-center">
                 <img 
-                  src="/assets/ipnl-logo.jpeg?v=2" 
+                  src="/assets/ipnl-logo.png?v=1" 
                   alt="India Property Network Ltd" 
                   className="h-10 w-auto"
                   onError={(e) => {
