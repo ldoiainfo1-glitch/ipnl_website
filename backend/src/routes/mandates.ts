@@ -4,8 +4,15 @@ import { verifySupabase } from '../middleware/verifySupabase';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/apiError';
 import { toMandateDTO, toMandateInsertPayload, toMandateUpdatePayload, hasAnyUpdateFields } from '../models/mandate';
 import { toUserDTO } from '../models/profile';
+import { createNotification } from '../lib/notificationsStore';
+import { emitToUsers } from '../lib/realtime';
 
 const router = express.Router();
+
+async function getAdminUserIds(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>): Promise<string[]> {
+  const { data } = await supabase.from('profiles').select('id').eq('role', 'ADMIN');
+  return (data ?? []).map((p: { id: string }) => p.id);
+}
 
 const MANDATE_TYPES = ['BUY', 'SELL'] as const;
 const ASSET_CLASSES = [
@@ -337,7 +344,46 @@ router.post('/', verifySupabase, async (req, res) => {
       return badRequest(res, reviewError?.message ?? 'Unable to create mandate review');
     }
 
-    return res.status(201).json(attachMandateReviewMetadata(toMandateDTO(data), reviewRow));
+    const mandateDTO = attachMandateReviewMetadata(toMandateDTO(data), reviewRow);
+
+    // Fire-and-forget notifications — never block the 201 response
+    const posterId = req.user!.id;
+    const mandateTitle = data.title as string;
+    const mandateId = data.id as string;
+    ;(async () => {
+      try {
+        const posterNotif = await createNotification({
+          userId: posterId,
+          type: 'MANDATE_POSTED',
+          title: 'Mandate Submitted for Review',
+          message: `Your mandate "${mandateTitle}" has been submitted and is pending admin approval.`,
+          relatedEntityId: mandateId,
+          relatedEntityType: 'mandate',
+        });
+        emitToUsers([posterId], 'notification:new', posterNotif);
+
+        const { data: posterProfile } = await supabase.from('profiles').select('company_name').eq('id', posterId).maybeSingle();
+        const companyName = (posterProfile as any)?.company_name ?? 'A member';
+        const adminIds = await getAdminUserIds(supabase);
+        console.log('[mandates] admin IDs found:', adminIds);
+        for (const adminId of adminIds) {
+          const adminNotif = await createNotification({
+            userId: adminId,
+            type: 'MANDATE_POSTED',
+            title: 'New Mandate Pending Review',
+            message: `${companyName} has posted a new mandate: "${mandateTitle}". Review it in the admin panel.`,
+            relatedEntityId: mandateId,
+            relatedEntityType: 'mandate',
+          });
+          emitToUsers([adminId], 'notification:new', adminNotif);
+          console.log('[mandates] admin notif created for', adminId);
+        }
+      } catch (notifErr: any) {
+        console.error('[mandates] notification error (non-fatal):', notifErr?.message);
+      }
+    })();
+
+    return res.status(201).json(mandateDTO);
   } catch (err: any) {
     return serverError(res, err.message);
   }

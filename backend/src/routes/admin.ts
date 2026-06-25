@@ -7,6 +7,8 @@ import { listIntros } from '../lib/runtimeStore';
 import { toMandateDTO } from '../models/mandate';
 import { createPrivateObjectViewUrl } from '../lib/objectStorage';
 import type { Database } from '../types/database';
+import { createNotification } from '../lib/notificationsStore';
+import { emitToUsers } from '../lib/realtime';
 
 // ─── DB row mappers ──────────────────────────────────────────────────────────
 
@@ -128,6 +130,8 @@ router.get('/kyc/:userId', verifySupabase, async (req, res) => {
       .from('kyc_reviews').select('*').eq('user_id', req.params.userId).single();
     if (error || !data) return notFound(res, 'KYC document not found');
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', req.params.userId).maybeSingle();
+
+
     return res.json(await rowToKycDoc(data, profile));
   } catch (err: any) { return serverError(res, err.message); }
 });
@@ -208,7 +212,28 @@ router.patch('/kyc/update', verifySupabase, async (req, res) => {
     await supabase.from('profiles').update(profilePatch).eq('id', body.userId);
 
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', body.userId).maybeSingle();
-    return res.json(await rowToKycDoc(data, profile));
+
+    // Fire-and-forget KYC status notification
+    if (body.userId) {
+      const notifUserId: string = body.userId;
+      const notifStatus = body.status;
+      ;(async () => {
+        try {
+          let n;
+          if (notifStatus === 'APPROVED') {
+            n = await createNotification({ userId: notifUserId, type: 'KYC_APPROVED', title: 'KYC Approved', message: 'Congratulations! Your KYC has been approved. Your account is now Verified.', relatedEntityType: 'kyc' });
+          } else if (notifStatus === 'REJECTED') {
+            n = await createNotification({ userId: notifUserId, type: 'KYC_REJECTED', title: 'KYC Rejected', message: 'Your KYC was rejected. Reason: ' + (body.rejectionReason || '') + '. Please resubmit.', relatedEntityType: 'kyc' });
+          } else if (notifStatus === 'UNDER_REVIEW') {
+            n = await createNotification({ userId: notifUserId, type: 'KYC_SUBMITTED', title: 'KYC Under Review', message: 'Your KYC is under review. Note: ' + (body.reviewNote || ''), relatedEntityType: 'kyc' });
+          }
+          if (n) emitToUsers([notifUserId], 'notification:new', n);
+          console.log('[admin] KYC notification sent to', notifUserId, 'status:', notifStatus);
+        } catch (e) { console.error('[admin] KYC notif error:', e); }
+      })();
+    }
+
+        return res.json(await rowToKycDoc(data, profile));
   } catch (err: any) { return serverError(res, err.message); }
 });
 
@@ -432,6 +457,46 @@ router.patch('/mandates/:id/review', verifySupabase, async (req, res) => {
     if (reviewErr || !reviewRow) return badRequest(res, reviewErr?.message ?? 'Unable to save review');
 
     await writeAuditLog(req.user!.id, `MANDATE_${body.status}`, 'mandate_review', req.params.id, body.note);
+    // Fire-and-forget mandate review notification
+    ;(async () => {
+      try {
+        const mandateOwnerId = existing.data.user_id as string;
+        const mandateTitle = (existing.data.title || 'Your mandate') as string;
+        const reviewStatus = body.status;
+        let msg = '';
+        if (reviewStatus === 'APPROVED') msg = 'Your mandate "' + mandateTitle + '" has been approved and is now live on the marketplace!';
+        else if (reviewStatus === 'REJECTED') msg = 'Your mandate "' + mandateTitle + '" was rejected. Note: ' + (body.note || '');
+        else if (reviewStatus === 'UNDER_REVIEW') msg = 'Your mandate "' + mandateTitle + '" is currently under review. Note: ' + (body.note || '');
+        if (msg) {
+          const n = await createNotification({ userId: mandateOwnerId, type: 'MANDATE_UPDATED', title: 'Mandate ' + reviewStatus, message: msg, relatedEntityId: req.params.id, relatedEntityType: 'mandate' });
+          emitToUsers([mandateOwnerId], 'notification:new', n);
+          console.log('[admin] mandate review notification sent to', mandateOwnerId, 'status:', reviewStatus);
+        }
+        // Broadcast to all members when mandate goes APPROVED/ACTIVE
+        if (reviewStatus === 'APPROVED') {
+          const { data: posterProfile } = await supabase
+            .from('profiles').select('company_name').eq('id', mandateOwnerId).maybeSingle();
+          const companyName = (posterProfile as any)?.company_name || 'A member';
+          const { data: allProfiles } = await supabase
+            .from('profiles').select('id').neq('id', mandateOwnerId);
+          const otherIds = ((allProfiles as any[]) || []).map((p: any) => p.id);
+          await Promise.all(otherIds.map(async (uid: string) => {
+            try {
+              const nb = await createNotification({
+                userId: uid,
+                type: 'MANDATE_POSTED',
+                title: 'New Mandate Listed',
+                message: companyName + ' has posted a new mandate: "' + mandateTitle + '" — check it out on the marketplace!',
+                relatedEntityId: req.params.id,
+                relatedEntityType: 'mandate',
+              });
+              emitToUsers([uid], 'notification:new', nb);
+            } catch (_) {}
+          }));
+          console.log('[admin] broadcast mandate-listed notification to', otherIds.length, 'members');
+        }
+      } catch (e) { console.error('[admin] mandate review notification error:', e); }
+    })();
 
     const review = rowToMandateReview(reviewRow);
     return res.json({
@@ -470,6 +535,17 @@ router.patch('/mandates/:id/hide', verifySupabase, async (req, res) => {
       .select('*').single();
 
     await writeAuditLog(req.user!.id, 'MANDATE_REJECTED', 'mandate_review', req.params.id, reason);
+    // Fire-and-forget mandate hide notification
+    ;(async () => {
+      try {
+        const mandateOwnerId2 = (data as any).user_id as string;
+        const mandateTitle2 = ((data as any).title || 'Your mandate') as string;
+        const msg2 = 'Your mandate "' + mandateTitle2 + '" has been rejected/hidden.' + (reason ? ' Reason: ' + reason : '');
+        const n2 = await createNotification({ userId: mandateOwnerId2, type: 'MANDATE_UPDATED', title: 'Mandate Rejected', message: msg2, relatedEntityId: req.params.id, relatedEntityType: 'mandate' });
+        emitToUsers([mandateOwnerId2], 'notification:new', n2);
+        console.log('[admin] mandate hide notification sent to', mandateOwnerId2);
+      } catch (e) { console.error('[admin] mandate hide notification error:', e); }
+    })();
 
     const review = reviewRow ? rowToMandateReview(reviewRow) : null;
     return res.json({ ...toMandateDTO(data), moderationStatus: 'REJECTED', moderationNote: review?.note, moderationReviewedBy: review?.reviewedBy, moderationReviewedAt: review?.reviewedAt });
@@ -506,6 +582,30 @@ router.patch('/mandates/:id/unhide', verifySupabase, async (req, res) => {
       .select('*').single();
 
     await writeAuditLog(req.user!.id, 'MANDATE_APPROVED', 'mandate_review', req.params.id);
+    // Fire-and-forget mandate unhide/approve notification
+    ;(async () => {
+      try {
+        const mandateOwnerId3 = existing.data.user_id as string;
+        const mandateTitle3 = ((data as any).title || 'Your mandate') as string;
+        const msg3 = 'Your mandate "' + mandateTitle3 + '" has been approved and is now live on the marketplace!';
+        const n3 = await createNotification({ userId: mandateOwnerId3, type: 'MANDATE_UPDATED', title: 'Mandate Approved', message: msg3, relatedEntityId: req.params.id, relatedEntityType: 'mandate' });
+        emitToUsers([mandateOwnerId3], 'notification:new', n3);
+        console.log('[admin] mandate unhide notification sent to', mandateOwnerId3);
+        // Broadcast to all members when mandate goes live
+        const { data: posterProfile3 } = await supabase.from('profiles').select('company_name').eq('id', mandateOwnerId3).maybeSingle();
+        const companyName3 = (posterProfile3 as any)?.company_name || 'A member';
+        const mandateTitle3b = ((data as any).title || 'Untitled') as string;
+        const { data: allProfiles3 } = await supabase.from('profiles').select('id').neq('id', mandateOwnerId3);
+        const otherIds3 = ((allProfiles3 as any[]) || []).map((p: any) => p.id);
+        await Promise.all(otherIds3.map(async (uid3: string) => {
+          try {
+            const nb3 = await createNotification({ userId: uid3, type: 'MANDATE_POSTED', title: 'New Mandate Listed', message: companyName3 + ' has posted a new mandate: "' + mandateTitle3b + '" — check it out on the marketplace!', relatedEntityId: req.params.id, relatedEntityType: 'mandate' });
+            emitToUsers([uid3], 'notification:new', nb3);
+          } catch (_) {}
+        }));
+        console.log('[admin] broadcast mandate-listed (unhide) to', otherIds3.length, 'members');
+      } catch (e) { console.error('[admin] mandate unhide notification error:', e); }
+    })();
 
     const review2 = reviewRow2 ? rowToMandateReview(reviewRow2) : null;
     return res.json({ ...toMandateDTO(data), moderationStatus: 'APPROVED', moderationNote: review2?.note, moderationReviewedBy: review2?.reviewedBy, moderationReviewedAt: review2?.reviewedAt });

@@ -1,12 +1,60 @@
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/formatters';
 
+function getNotificationLink(
+  type: string,
+  relatedEntityType?: string,
+  relatedEntityId?: string,
+  isAdmin?: boolean
+): string | null {
+  if (type === 'MANDATE_POSTED') {
+    if (relatedEntityId) return `/mandates/${relatedEntityId}`;
+    return isAdmin ? '/admin/mandates' : '/marketplace';
+  }
+  if (type === 'MANDATE_UPDATED') {
+    return relatedEntityId ? `/mandates/${relatedEntityId}` : '/marketplace';
+  }
+  if (type === 'KYC_SUBMITTED') {
+    return isAdmin ? '/admin/kyc-queue' : '/kyc';
+  }
+  if (type === 'KYC_APPROVED' || type === 'KYC_REJECTED') {
+    return '/kyc';
+  }
+  if (type === 'MESSAGE_RECEIVED') {
+    return '/messages';
+  }
+  if (type === 'INTRO_RECEIVED' || type === 'INTRO_ACCEPTED' || type === 'INTRO_DECLINED') {
+    return '/intros';
+  }
+  if (relatedEntityType === 'mandate' && relatedEntityId) {
+    return `/mandates/${relatedEntityId}`;
+  }
+  return null;
+}
+
 export default function Notifications() {
+  const navigate = useNavigate();
+  const isAdmin = useAdminAccess();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, isLoading } = useNotifications();
+
+  function handleNotificationClick(notification: any) {
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+    const link = getNotificationLink(
+      notification.type,
+      notification.relatedEntityType,
+      notification.relatedEntityId,
+      isAdmin
+    );
+    if (link) navigate(link);
+  }
 
   if (isLoading) {
     return (
@@ -50,7 +98,8 @@ export default function Notifications() {
               key={notification.id}
               className={`${
                 !notification.isRead ? 'border-primary bg-primary/5' : ''
-              }`}
+              } ${getNotificationLink(notification.type, notification.relatedEntityType, notification.relatedEntityId, isAdmin) ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+              onClick={() => handleNotificationClick(notification)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
@@ -75,7 +124,7 @@ export default function Notifications() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }}
                       >
                         <Check className="w-4 h-4" />
                       </Button>
@@ -83,7 +132,7 @@ export default function Notifications() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => deleteNotification(notification.id)}
+                      onClick={(e) => { e.stopPropagation(); deleteNotification(notification.id); }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

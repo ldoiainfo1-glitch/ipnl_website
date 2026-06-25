@@ -4,9 +4,16 @@ import { badRequest, serverError, unauthorized } from '../utils/apiError';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { createPrivateObjectViewUrl, createUploadPath, getStorageInfo, uploadObject } from '../lib/objectStorage';
 import { upload, uploadErrorHandler } from '../middleware/upload';
+import { createNotification } from '../lib/notificationsStore';
+import { emitToUsers } from '../lib/realtime';
 
 async function signDocumentUrl(url?: string | null) {
   return url ? createPrivateObjectViewUrl(url) : undefined;
+}
+
+async function getAdminUserIds(supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>): Promise<string[]> {
+  const { data } = await supabase.from('profiles').select('id').eq('role', 'ADMIN');
+  return (data ?? []).map((p: { id: string }) => p.id);
 }
 
 async function rowToKycDoc(row: any) {
@@ -129,6 +136,43 @@ router.post(
       .single();
     if (dbErr || !record) return serverError(res, dbErr?.message ?? 'Failed to save KYC');
 
+    const submitterId = req.user.id;
+    const supabaseForNotif = getSupabaseAdmin()!;
+    // Fire-and-forget notifications
+    (async () => {
+      try {
+        const { data: userProfile } = await supabaseForNotif.from('profiles').select('company_name').eq('id', submitterId).maybeSingle();
+        const companyName = userProfile?.company_name ?? 'A member';
+
+        const submitterNotification = await createNotification({
+          userId: submitterId,
+          type: 'KYC_SUBMITTED',
+          title: 'KYC Documents Submitted',
+          message: 'Your KYC documents have been submitted and are pending admin review.',
+          relatedEntityType: 'kyc',
+        });
+        emitToUsers([submitterId], 'notification:new', submitterNotification);
+        console.log('[kyc] submitter notification created for', submitterId);
+
+        const adminIds = await getAdminUserIds(supabaseForNotif);
+        console.log('[kyc] admin IDs found:', adminIds);
+        for (const adminId of adminIds) {
+          const adminNotification = await createNotification({
+            userId: adminId,
+            type: 'KYC_SUBMITTED',
+            title: 'New KYC Submission',
+            message: `${companyName} has submitted KYC documents for review.`,
+            relatedEntityId: submitterId,
+            relatedEntityType: 'kyc',
+          });
+          emitToUsers([adminId], 'notification:new', adminNotification);
+          console.log('[kyc] admin notification created for', adminId);
+        }
+      } catch (notifErr: any) {
+        console.error('[kyc] notification error (non-fatal):', notifErr?.message);
+      }
+    })();
+
     return res.status(201).json({ ...(await rowToKycDoc(record)), storage: getStorageInfo() });
   },
 );
@@ -200,6 +244,42 @@ router.patch(
       .select('*')
       .single();
     if (dbErr2 || !record2) return serverError(res, dbErr2?.message ?? 'Failed to save KYC');
+
+    const resubmitterId = req.user.id;
+    // Fire-and-forget notifications
+    (async () => {
+      try {
+        const { data: userProfile2 } = await supabase2.from('profiles').select('company_name').eq('id', resubmitterId).maybeSingle();
+        const companyName2 = userProfile2?.company_name ?? 'A member';
+
+        const resubmitNotification = await createNotification({
+          userId: resubmitterId,
+          type: 'KYC_SUBMITTED',
+          title: 'KYC Documents Resubmitted',
+          message: 'Your updated KYC documents have been submitted and are pending admin review.',
+          relatedEntityType: 'kyc',
+        });
+        emitToUsers([resubmitterId], 'notification:new', resubmitNotification);
+        console.log('[kyc] resubmit notification created for', resubmitterId);
+
+        const adminIds2 = await getAdminUserIds(supabase2);
+        console.log('[kyc] admin IDs found for resubmit:', adminIds2);
+        for (const adminId of adminIds2) {
+          const adminNotification = await createNotification({
+            userId: adminId,
+            type: 'KYC_SUBMITTED',
+            title: 'KYC Resubmission',
+            message: `${companyName2} has resubmitted KYC documents for review.`,
+            relatedEntityId: resubmitterId,
+            relatedEntityType: 'kyc',
+          });
+          emitToUsers([adminId], 'notification:new', adminNotification);
+          console.log('[kyc] admin notification created for', adminId);
+        }
+      } catch (notifErr: any) {
+        console.error('[kyc] notification error (non-fatal):', notifErr?.message);
+      }
+    })();
 
     return res.json({ ...(await rowToKycDoc(record2)), storage: getStorageInfo() });
   },

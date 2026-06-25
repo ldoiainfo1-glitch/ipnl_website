@@ -8,7 +8,9 @@ export type NotificationType =
   | 'INTRO_ACCEPTED'
   | 'INTRO_DECLINED'
   | 'MESSAGE_RECEIVED'
+  | 'MANDATE_POSTED'
   | 'MANDATE_UPDATED'
+  | 'KYC_SUBMITTED'
   | 'KYC_APPROVED'
   | 'KYC_REJECTED'
   | 'TIER_UPGRADED';
