@@ -5,6 +5,7 @@ import { badRequest, notFound, serverError, unauthorized } from '../utils/apiErr
 import { createNotification } from '../lib/notificationsStore';
 import { emitToUsers } from '../lib/realtime';
 import { toUserDTO } from '../models/profile';
+import { createPrivateLogoObjectViewUrl } from '../lib/objectStorage';
 
 const router = express.Router();
 const PROFILE_CARD_MESSAGE_TYPE = 'IPNL_PROFILE_CARD_V1';
@@ -61,9 +62,20 @@ async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupaba
     .select('*')
     .in('id', row.participant_ids);
 
+    // Fetch real mandate counts for all participants in one query (ACTIVE only)
+    const { data: mandateRows } = await supabase
+      .from('mandates')
+      .select('user_id')
+      .in('user_id', row.participant_ids)
+      .eq('status', 'ACTIVE');
+    const mandateCountByUser = new Map<string, number>();
+    (mandateRows ?? []).forEach((m) => {
+      mandateCountByUser.set(m.user_id, (mandateCountByUser.get(m.user_id) ?? 0) + 1);
+    });
+
   const { data: lastMessage } = await supabase
     .from('messages')
-    .select('*')
+    .select('id, conversation_id, sender_id, content, created_at, seen_at, expires_at')
     .eq('conversation_id', row.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -78,25 +90,34 @@ async function mapConversation(supabase: NonNullable<ReturnType<typeof getSupaba
 
   return {
     id: row.id,
-    participants: (participants || []).map((p) => ({
+    participants: await Promise.all((participants || []).map(async (p) => ({
       id: p.id,
       email: p.email ?? '',
-      mobile: '',
+      mobile: p.mobile ?? '',
       companyName: p.company_name ?? 'Unknown Company',
-      role: p.role === 'ADMIN' ? 'ADMIN' : 'DEVELOPER',
-      tier: p.tier === 'ENTERPRISE' || p.tier === 'VERIFIED' || p.tier === 'OBSERVER' ? p.tier : 'OBSERVER',
-      status: 'APPROVED',
-      kycStatus: 'SUBMITTED',
-      reputationScore: 50,
+      role: p.role ?? 'DEVELOPER',
+      tier: p.tier ?? 'OBSERVER',
+      status: p.status ?? 'APPROVED',
+      kycStatus: p.kyc_status ?? 'NOT_SUBMITTED',
+      companyDescription: p.company_description ?? '',
+      website: p.website ?? '',
+      linkedin: p.linkedin ?? '',
+      city: p.city ?? '',
+      state: p.state ?? '',
+      assetPreferences: p.asset_preferences ?? [],
+      ticketSizeMin: p.ticket_size_min ?? undefined,
+      ticketSizeMax: p.ticket_size_max ?? undefined,
+      reputationScore: p.reputation_score ?? 50,
       totalIntrosSent: 0,
       totalIntrosReceived: 0,
-      totalMandatesPosted: 0,
+      totalMandatesPosted: mandateCountByUser.get(p.id) ?? 0,
       introQuotaLimit: 10,
       introQuotaUsed: 0,
+      logo: p.logo ? (await createPrivateLogoObjectViewUrl(p.logo)) : null,
       isAnonymous: false,
       createdAt: p.created_at,
       updatedAt: p.updated_at,
-    })),
+    }))),
     participantIds: row.participant_ids,
     lastMessage: lastMessage
       ? mapMessage(lastMessage)
@@ -256,7 +277,13 @@ router.post('/profile-details', verifySupabase, async (req, res) => {
 
     if (profileError || !profile) return notFound(res, 'Profile not found');
 
-    const content = createProfileCardContent(toUserDTO(profile));
+    const { count: mandatesPosted } = await supabase
+      .from('mandates')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', req.user.id)
+      .eq('status', 'ACTIVE');
+
+    const content = createProfileCardContent(await toUserDTO(profile, { mandatesPosted: mandatesPosted ?? 0 }));
     const { data, error } = await supabase
       .from('messages')
       .insert({

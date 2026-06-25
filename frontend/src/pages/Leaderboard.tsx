@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
-import { Trophy, Star, Shield, CheckCircle2, Activity } from 'lucide-react';
+import { Trophy, Star, Shield, CheckCircle2, Activity, Building2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function Leaderboard() {
@@ -103,8 +103,17 @@ export default function Leaderboard() {
               `}
             >
               {/* Rank Number */}
-              <div className="w-16 h-16 flex items-center justify-center bg-blue-500/10 rounded text-2xl font-bold text-blue-400 mr-6">
+              <div className="w-10 flex items-center justify-center text-2xl font-bold text-blue-400 mr-4">
                 {entry.rank}
+              </div>
+
+              {/* Company Logo */}
+              <div className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center overflow-hidden mr-4 shrink-0">
+                {entry.user?.logo ? (
+                  <img src={entry.user.logo} alt={entry.user.companyName} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="w-6 h-6 text-muted-foreground" />
+                )}
               </div>
 
               {/* Member Info */}

@@ -82,7 +82,7 @@ router.get('/me', verifySupabase, async (req, res) => {
     }
 
     const [{ count: mandateCount }, { data: kycRow }] = await Promise.all([
-      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id),
+      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id).eq('status', 'ACTIVE'),
       supabase.from('kyc_reviews').select('status').eq('user_id', req.user.id).maybeSingle(),
     ]);
 
@@ -145,7 +145,7 @@ router.patch('/me', verifySupabase, async (req, res) => {
     if (error || !data) return badRequest(res, error?.message ?? 'Unable to update profile');
 
     const [{ count: mandateCount2 }, { data: kycRow2 }] = await Promise.all([
-      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id),
+      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', req.user.id).eq('status', 'ACTIVE'),
       supabase.from('kyc_reviews').select('status').eq('user_id', req.user.id).maybeSingle(),
     ]);
     const intros2 = listIntros();
@@ -255,7 +255,7 @@ router.get('/members', verifySupabase, async (req, res) => {
 
     const members = await Promise.all((data || []).map(async (row) => {
       const { count: mandateCount } = await supabase
-        .from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', row.id);
+        .from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', row.id).eq('status', 'ACTIVE');
       const { data: kycRow } = await supabase
         .from('kyc_reviews').select('status').eq('user_id', row.id).maybeSingle();
       const intros = listIntros();
@@ -286,13 +286,12 @@ router.get('/members/:id', verifySupabase, async (req, res) => {
       .single();
 
     if (error || !data) return notFound(res, 'Member not found');
-    if (data.role === 'ADMIN' || data.status === 'SUSPENDED') return notFound(res, 'Member not found');
+    if (data.status === 'SUSPENDED') return notFound(res, 'Member not found');
 
     const [{ count: mandateCount3 }, { data: kycRow3 }] = await Promise.all([
-      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', data.id),
+      supabase.from('mandates').select('id', { count: 'exact', head: true }).eq('user_id', data.id).eq('status', 'ACTIVE'),
       supabase.from('kyc_reviews').select('status').eq('user_id', data.id).maybeSingle(),
     ]);
-    if ((kycRow3 as any)?.status !== 'APPROVED') return notFound(res, 'Member not found');
 
     const intros3 = listIntros();
     const user = await toUserDTO(data, {
