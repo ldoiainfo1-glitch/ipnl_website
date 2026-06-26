@@ -68,13 +68,15 @@ export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Initialize theme from localStorage
+  // Initialize theme from localStorage — default is light
   useEffect(() => {
     const theme = localStorage.getItem('theme');
-    const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = theme === 'dark';
     setIsDarkMode(isDark);
     if (isDark) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 

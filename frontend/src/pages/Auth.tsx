@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,8 @@ export default function Auth() {
   const { login, register, demoLogin, isLoggingIn, isRegistering } = useAuth();
   
   const isLogin = location.pathname === '/login';
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -110,9 +113,10 @@ export default function Auth() {
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setEmailError(''); }}
               required
             />
+            {emailError && <p className="text-destructive text-xs mt-1">{emailError}</p>}
           </div>
 
           {!isLogin && (
@@ -131,13 +135,43 @@ export default function Auth() {
 
           <div>
             <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center px-3"
+                style={{ color: '#6b7280' }}
+                tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+            {isLogin && (
+              <div className="text-right mt-1">
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    if (!formData.email.trim()) {
+                      setEmailError('Email is required to reset your password');
+                      return;
+                    }
+                    navigate(`/forgot-password?email=${encodeURIComponent(formData.email)}`);
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </div>
 
           {!isLogin && (

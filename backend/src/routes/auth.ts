@@ -191,4 +191,30 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
+// POST /api/auth/reset-password
+// Directly updates a user's password by email using the service-role key.
+router.post('/reset-password', async (req, res) => {
+  const { email, newPassword } = req.body as { email?: string; newPassword?: string };
+  if (!email || !newPassword) return res.status(400).json({ message: 'email and newPassword are required' });
+  if (newPassword.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.status(500).json({ message: 'Supabase not configured' });
+
+  try {
+    const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    if (listErr) throw listErr;
+
+    const user = users.find((u) => u.email?.toLowerCase() === email.toLowerCase().trim());
+    if (!user) return res.status(404).json({ message: 'No account found with that email address' });
+
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(user.id, { password: newPassword });
+    if (updateErr) throw updateErr;
+
+    return res.json({ message: 'Password updated successfully' });
+  } catch (err: any) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

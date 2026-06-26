@@ -541,9 +541,8 @@ export default function Pricing() {
 
       {/* Hero */}
       <section className="relative overflow-hidden py-20 px-4 border-b border-border">
-  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
-  <div className="relative container mx-auto max-w-3xl text-center"></div>
-        <div className="container mx-auto max-w-3xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
+        <div className="relative container mx-auto max-w-3xl text-center">
           <p className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1 text-xs font-semibold tracking-wider text-primary mb-6">Category-wise Pricing</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Annual membership by role</h1>
           <p className="text-muted-foreground text-lg">All prices are per firm, per year, exclusive of GST. Billed annually.</p>

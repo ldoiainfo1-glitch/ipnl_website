@@ -34,6 +34,8 @@ import Terms from './pages/static/Terms';
 import ReraProtocol from './pages/static/ReraProtocol';
 import Contact from './pages/static/Contact';
 import Pricing from './pages/Pricing';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Hooks & Store
 import { useAuth } from './hooks/useAuth';
@@ -61,6 +63,8 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Auth />} />
           <Route path="/register" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         {/* Protected Routes */}

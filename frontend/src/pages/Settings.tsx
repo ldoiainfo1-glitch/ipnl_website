@@ -16,9 +16,9 @@ export default function Settings() {
     alert(`Upgrade to ${tier} tier\n\nIn production, this would:\n- Redirect to payment gateway\n- Process subscription payment\n- Update your account tier\n\nContact: sales@ipnl.com for Enterprise`);
   };
 
-  const handleChangePassword = () => {
-    alert('Change Password feature\n\nIn production, this would:\n- Send a password reset email\n- Or show a password change form');
-  };
+  // const handleChangePassword = () => {
+  //   alert('Change Password feature\n\nIn production, this would:\n- Send a password reset email\n- Or show a password change form');
+  // };
 
   const handleDeleteAccount = () => {
     const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone.');
@@ -174,13 +174,13 @@ export default function Settings() {
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button 
+          {/* <Button 
             variant="outline" 
             className="w-full"
             onClick={handleChangePassword}
           >
             Change Password
-          </Button>
+          </Button> */}
           <Button 
             variant="destructive" 
             className="w-full"
