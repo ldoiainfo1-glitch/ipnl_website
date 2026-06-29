@@ -45,6 +45,13 @@ app.use("/api/reputation", reputationRouter);
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+app.get("/", (req, res) => res.json({
+  name: "India Property Networks API",
+  version: "1.0.0",
+  status: "running",
+  docs: "/api/health"
+}));
+
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 server.listen(port, "0.0.0.0", () => {
   // eslint-disable-next-line no-console
