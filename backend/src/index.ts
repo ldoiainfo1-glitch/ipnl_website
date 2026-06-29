@@ -18,7 +18,15 @@ import reputationRouter from "./routes/reputation";
 import { initRealtime } from "./lib/realtime";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://www.indiapropertynetworks.com',
+    'https://indiapropertynetworks.com',
+    'http://localhost:5173',
+    'http://localhost:4173',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 const server = createServer(app);
 initRealtime(server);
