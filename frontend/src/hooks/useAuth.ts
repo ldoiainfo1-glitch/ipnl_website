@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { RegisterRequest } from '@/types';
 
 export const useAuth = () => {
-  const { user, isAuthenticated, login, register, logout, demoLogin } = useAuthStore();
+  const { user, isAuthenticated, login, register, logout } = useAuthStore();
   const queryClient = useQueryClient();
 
   // Query current user
@@ -35,14 +35,6 @@ export const useAuth = () => {
     },
   });
 
-  // Demo login mutation
-  const demoLoginMutation = useMutation({
-    mutationFn: () => demoLogin(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-    },
-  });
-
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -61,7 +53,6 @@ export const useAuth = () => {
     login: loginMutation.mutateAsync,
     register: registerMutation.mutateAsync,
     logout: logoutMutation.mutate,
-    demoLogin: demoLoginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
   };

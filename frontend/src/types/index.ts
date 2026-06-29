@@ -500,7 +500,6 @@ export interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
-  demoLogin: () => Promise<void>;
 }
 
 export interface SocketMessage {

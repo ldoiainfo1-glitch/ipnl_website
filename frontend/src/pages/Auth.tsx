@@ -11,7 +11,7 @@ import { USER_ROLES } from '@/utils/constants';
 export default function Auth() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register, demoLogin, isLoggingIn, isRegistering } = useAuth();
+  const { login, register, isLoggingIn, isRegistering } = useAuth();
   
   const isLogin = location.pathname === '/login';
   const [showPassword, setShowPassword] = useState(false);
@@ -52,15 +52,6 @@ export default function Auth() {
       navigate('/dashboard');
     } catch (error: any) {
       alert(error.detail || 'Authentication failed');
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    try {
-      await demoLogin();
-      navigate('/dashboard');
-    } catch (error: any) {
-      alert(error.detail || 'Demo login failed');
     }
   };
 
@@ -219,23 +210,6 @@ export default function Auth() {
         </form>
 
         <div className="mt-4 space-y-3">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={handleDemoLogin}
-          >
-            Try Demo Account
-          </Button>
-
           <p className="text-center text-sm text-muted-foreground">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button

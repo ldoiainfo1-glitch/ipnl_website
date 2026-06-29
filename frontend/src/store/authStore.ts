@@ -94,41 +94,6 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      demoLogin: async () => {
-        try {
-          if (supabase) {
-            // Create demo user via backend then sign in with Supabase to get a session
-            const response = await authApi.demoLogin();
-            const creds = (response.data as any).credentials;
-            if (!creds || !creds.email || !creds.password) {
-              throw new Error('Demo credentials missing');
-            }
-            const signIn = await supabase.auth.signInWithPassword({ email: creds.email, password: creds.password });
-            if (signIn.error) throw signIn.error;
-            const user = normalizeAuthUser(signIn.data.user as any);
-            const token = signIn.data.session?.access_token;
-            set({ user, token, isAuthenticated: !!token });
-            if (token) localStorage.setItem('ipn_token', token);
-            return;
-          }
-
-          const response = await authApi.demoLogin();
-          const { user, token } = response.data;
-          set({
-            user,
-            token,
-            isAuthenticated: true,
-          });
-
-          // Store token in axios defaults
-          if (token) {
-            localStorage.setItem('ipn_token', token);
-          }
-        } catch (error) {
-          console.error('Demo login failed:', error);
-          throw error;
-        }
-      },
     }),
     {
       name: 'ipn-auth-storage',

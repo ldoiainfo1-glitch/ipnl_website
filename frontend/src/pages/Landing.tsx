@@ -194,15 +194,6 @@ export default function Landing() {
             ) : (
               // Not authenticated - show login buttons
               <>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/login')} 
-                  className="hidden sm:inline-flex items-center gap-2"
-                >
-                  <Users className="w-4 h-4" />
-                  Demo login
-                </Button>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/login')} className="hidden md:inline-flex">
                   Sign in
                 </Button>

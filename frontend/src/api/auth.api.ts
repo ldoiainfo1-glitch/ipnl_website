@@ -22,10 +22,6 @@ export const authApi = {
     return apiClient.get<{ isAdmin: boolean }>('/auth/admin-access');
   },
 
-  demoLogin: async () => {
-    return apiClient.post<{ user: User; token: string }>('/auth/demo-login');
-  },
-
   refreshToken: async () => {
     return apiClient.post<{ token: string }>('/auth/refresh');
   },
