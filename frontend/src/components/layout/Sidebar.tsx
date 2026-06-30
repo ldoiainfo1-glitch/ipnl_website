@@ -47,6 +47,7 @@ export default function Sidebar() {
     { icon: Users, label: 'Users', href: '/admin/users' },
     { icon: BarChart3, label: 'Statistics', href: '/admin/stats' },
     { icon: ScrollText, label: 'Audit History', href: '/admin/audit' },
+    { icon: Handshake, label: 'New Leads', href: '/admin/leads' },
   ];
 
   const isActive = (href: string) => location.pathname === href;

@@ -431,6 +431,42 @@ export interface Database {
         }>;
         Relationships: [];
       };
+      leads: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          name: string;
+          mobile: string;
+          email: string;
+          mandate_title: string;
+          mandate_type: string;
+          mandate_company: string;
+          mandate_asset: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          name: string;
+          mobile?: string;
+          email?: string;
+          mandate_title: string;
+          mandate_type: string;
+          mandate_company: string;
+          mandate_asset?: string;
+          created_at?: string;
+        };
+        Update: Partial<{
+          name: string;
+          mobile: string;
+          email: string;
+          mandate_title: string;
+          mandate_type: string;
+          mandate_company: string;
+          mandate_asset: string;
+        }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

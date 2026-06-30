@@ -475,7 +475,7 @@ export default function Landing() {
                       { company: 'Mahindra Lifespaces', type: 'Township', asset: 'OMR · Chennai', ticket: '20–30 ac · Plotted', time: '21 min ago', initial: 'M' },
                       { company: 'Oberoi Realty', type: 'Premium Resi', asset: 'Sea-facing · Worli', ticket: '3–5 ac · Outright', time: '24 min ago', initial: 'O' },
                     ].map((mandate, idx) => (
-                      <div key={`${setIdx}-${idx}`} className="px-6 py-4 flex items-center gap-4 hover:bg-[#FF9900]/5 cursor-pointer transition-colors" onClick={() => navigate('/marketplace')}>
+                      <div key={`${setIdx}-${idx}`} className="px-6 py-4 flex items-center gap-4 hover:bg-[#FF9900]/5 cursor-pointer transition-colors" onClick={() => navigate('/mandate-preview', { state: { mandate: { ...mandate, side: 'buy' } } })}>
                         <div className="size-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0 bg-[#003366] text-white dark:bg-[#FF9900] dark:text-[#003366]">
                           {mandate.initial}
                         </div>
@@ -529,7 +529,7 @@ export default function Landing() {
                       { company: 'Adarsh Heritage Trust', type: 'Land', asset: 'Heritage Plot · Bandra', ticket: '1.4 ac · Title clear', time: '19 min ago', initial: 'A' },
                       { company: 'DLF Land Bank', type: 'Land', asset: 'NH8 · Gurgaon', ticket: '70 ac · Sector land', time: '22 min ago', initial: 'D' },
                     ].map((mandate, idx) => (
-                      <div key={`${setIdx}-${idx}`} className="px-6 py-4 flex items-center gap-4 hover:bg-[#FF9900]/5 cursor-pointer transition-colors" onClick={() => navigate('/marketplace')}>
+                      <div key={`${setIdx}-${idx}`} className="px-6 py-4 flex items-center gap-4 hover:bg-[#FF9900]/5 cursor-pointer transition-colors" onClick={() => navigate('/mandate-preview', { state: { mandate: { ...mandate, side: 'sell' } } })}>
                         <div className="size-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0 bg-[#003366] text-white dark:bg-[#FF9900] dark:text-[#003366]">
                           {mandate.initial}
                         </div>

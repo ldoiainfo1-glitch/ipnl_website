@@ -96,4 +96,9 @@ export const adminApi = {
       params: { page, limit },
     });
   },
+
+  // Leads — mandate enquiries from new registrations
+  getLeads: async () => {
+    return apiClient.get<any[]>('/admin/leads');
+  },
 };

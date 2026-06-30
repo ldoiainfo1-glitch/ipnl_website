@@ -27,6 +27,10 @@ import AdminMandates from './pages/admin/AdminMandates';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminStats from './pages/admin/AdminStats';
 import AdminAuditHistory from './pages/admin/AdminAuditHistory';
+import AdminLeads from './pages/admin/AdminLeads';
+
+// Public utility pages
+import PublicMandatePreview from './pages/PublicMandatePreview';
 
 // Static Pages
 import Privacy from './pages/static/Privacy';
@@ -53,6 +57,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/mandate-preview" element={<PublicMandatePreview />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
@@ -95,6 +100,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/stats" element={<AdminStats />} />
               <Route path="/admin/audit" element={<AdminAuditHistory />} />
+              <Route path="/admin/leads" element={<AdminLeads />} />
             </>
           )}
         </Route>

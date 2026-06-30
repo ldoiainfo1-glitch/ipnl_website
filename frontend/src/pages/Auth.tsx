@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { USER_ROLES } from '@/utils/constants';
+import { apiClient } from '@/api/client';
 
 export default function Auth() {
   const location = useLocation();
@@ -48,6 +49,18 @@ export default function Auth() {
           gst: formData.gst,
           reraNumber: formData.reraNumber,
         });
+        // Submit pending mandate enquiry if the user came from a mandate preview
+        const pendingEnquiry = localStorage.getItem('pendingMandateEnquiry');
+        if (pendingEnquiry) {
+          try {
+            const enquiryData = JSON.parse(pendingEnquiry);
+            await apiClient.post('/leads', enquiryData);
+          } catch {
+            // non-critical — don't block navigation
+          } finally {
+            localStorage.removeItem('pendingMandateEnquiry');
+          }
+        }
       }
       navigate('/dashboard');
     } catch (error: any) {

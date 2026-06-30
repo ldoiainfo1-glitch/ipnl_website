@@ -15,6 +15,7 @@ import kycRouter from "./routes/kyc";
 import adminRouter from "./routes/admin";
 import billingRouter from "./routes/billing";
 import reputationRouter from "./routes/reputation";
+import leadsRouter from "./routes/leads";
 import { initRealtime } from "./lib/realtime";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/kyc", kycRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/billing", billingRouter);
 app.use("/api/reputation", reputationRouter);
+app.use("/api/leads", leadsRouter);
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
