@@ -99,6 +99,6 @@ export const adminApi = {
 
   // Leads — mandate enquiries from new registrations
   getLeads: async () => {
-    return apiClient.get<any[]>('/admin/leads');
+    return apiClient.get<any[]>('/leads');
   },
 };

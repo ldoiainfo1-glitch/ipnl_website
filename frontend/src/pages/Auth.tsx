@@ -54,7 +54,12 @@ export default function Auth() {
         if (pendingEnquiry) {
           try {
             const enquiryData = JSON.parse(pendingEnquiry);
-            await apiClient.post('/leads', enquiryData);
+            await apiClient.post('/leads', {
+              ...enquiryData,
+              name: formData.companyName,
+              mobile: formData.mobile,
+              email: formData.email,
+            });
           } catch {
             // non-critical — don't block navigation
           } finally {
