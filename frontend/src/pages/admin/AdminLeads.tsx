@@ -67,19 +67,23 @@ export default function AdminLeads() {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-base font-semibold">{lead.name}</CardTitle>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      {lead.email && (
-                        <span className="flex items-center gap-1">
-                          <Mail className="w-3.5 h-3.5" />
-                          {lead.email}
-                        </span>
-                      )}
-                      {lead.mobile && (
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-3.5 h-3.5" />
-                          {lead.mobile}
-                        </span>
-                      )}
+                    <div className="flex flex-wrap items-center gap-4 mt-2 text-sm">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Phone className="w-3.5 h-3.5 text-[#FF9900]" />
+                        {lead.mobile && lead.mobile.trim() ? (
+                          <span className="font-medium text-foreground">{lead.mobile}</span>
+                        ) : (
+                          <span className="italic text-muted-foreground/60">No phone</span>
+                        )}
+                      </span>
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Mail className="w-3.5 h-3.5 text-[#FF9900]" />
+                        {lead.email && lead.email.trim() ? (
+                          <span className="font-medium text-foreground">{lead.email}</span>
+                        ) : (
+                          <span className="italic text-muted-foreground/60">No email</span>
+                        )}
+                      </span>
                     </div>
                   </div>
                   <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
