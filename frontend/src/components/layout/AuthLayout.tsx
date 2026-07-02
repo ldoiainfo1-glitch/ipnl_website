@@ -8,7 +8,7 @@ export default function AuthLayout() {
           <img
             src="/assets/ipnl-logo.png?v=1"
             alt="India Property Network Ltd"
-            className="h-24 w-auto mb-4"
+            className="h-32 w-auto mb-4"
           />
           <p className="text-muted-foreground">
             India Property Network Ltd.

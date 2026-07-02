@@ -115,7 +115,7 @@ export default function Landing() {
             <img 
               src="/assets/ipnl-logo.png?v=1" 
               alt="India Property Network Ltd" 
-              className="h-16 md:h-20 w-auto"
+              className="h-24 md:h-28 w-auto"
               onError={(e) => {
                 // Fallback if image not found
                 e.currentTarget.style.display = 'none';
@@ -709,7 +709,7 @@ export default function Landing() {
                 <img 
                   src="/assets/ipnl-logo.png?v=1" 
                   alt="India Property Network Ltd" 
-                  className="h-14 w-auto"
+                  className="h-16 w-auto"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}

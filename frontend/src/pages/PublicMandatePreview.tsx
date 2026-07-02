@@ -88,7 +88,7 @@ export default function PublicMandatePreview() {
               <img
                 src="/assets/ipnl-logo.png?v=1"
                 alt="India Property Network Ltd"
-                className="h-14 w-auto"
+                className="h-16 w-auto"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
