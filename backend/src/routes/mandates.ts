@@ -122,7 +122,7 @@ router.get('/', async (req, res) => {
 
     // Show only active mandates that have been explicitly approved by admin.
     // Off-market here means "not listed on public internet portals",
-    // not hidden from authenticated IPN network users.
+    // not hidden from authenticated India Property Network Ltd. users.
     let query = supabase
       .from('mandates')
       .select('*', { count: 'exact' })

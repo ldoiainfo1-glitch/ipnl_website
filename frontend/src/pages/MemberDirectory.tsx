@@ -121,7 +121,7 @@ export default function MemberDirectory() {
       <div>
         <h1 className="text-3xl font-bold">Member Directory</h1>
         <p className="text-muted-foreground">
-          Discover verified real estate professionals on IPN
+          Discover verified real estate professionals on India Property Network Ltd.
         </p>
       </div>
 

@@ -80,7 +80,7 @@ export default function Auth() {
         <CardDescription>
           {isLogin 
             ? 'Enter your credentials to access your account' 
-            : 'Join the exclusive IPN network'}
+            : 'Join India Property Network Ltd.'}
         </CardDescription>
       </CardHeader>
       <CardContent>

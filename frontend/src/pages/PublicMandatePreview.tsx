@@ -185,7 +185,7 @@ export default function PublicMandatePreview() {
             <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
             <path d="m9 12 2 2 4-4"/>
           </svg>
-          This mandate is posted by a <strong className="mx-1">KYC-verified principal</strong> on India Property Networks. Contact details are available to verified members.
+          This mandate is posted by a <strong className="mx-1">KYC-verified principal</strong> on India Property Network Ltd. Contact details are available to verified members.
         </div>
 
         {/* CTA Card */}
@@ -195,7 +195,7 @@ export default function PublicMandatePreview() {
               Interested in this mandate?
             </h2>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              Register on India Property Networks to send your enquiry directly to the principal. Join 5,000+ verified real estate professionals.
+              Register on India Property Network Ltd. to send your enquiry directly to the principal. Join 5,000+ verified real estate professionals.
             </p>
             <Button
               size="lg"

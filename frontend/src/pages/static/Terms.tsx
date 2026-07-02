@@ -8,7 +8,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground">
-              By accessing India Property Networks (IPN), you agree to these terms of service 
+              By accessing India Property Network Ltd., you agree to these terms of service 
               and our privacy policy. If you disagree with any part, you may not access the platform.
             </p>
           </section>
@@ -16,7 +16,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">2. Membership Tiers</h2>
             <p className="text-muted-foreground">
-              IPN offers three tiers: OBSERVER (free, browse-only), VERIFIED (₹24,000/year with 
+              India Property Network Ltd. offers three tiers: OBSERVER (free, browse-only), VERIFIED (₹24,000/year with 
               full access), and ENTERPRISE (custom pricing with unlimited features).
             </p>
           </section>
@@ -40,7 +40,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">5. No Brokerage Model</h2>
             <p className="text-muted-foreground">
-              IPN operates on subscriptions only. We do not earn brokerage or touch deal 
+              India Property Network Ltd. operates on subscriptions only. We do not earn brokerage or touch deal 
               financials. All transactions are between members directly.
             </p>
           </section>
@@ -48,7 +48,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">6. Limitation of Liability</h2>
             <p className="text-muted-foreground">
-              IPN facilitates connections but is not responsible for deal outcomes. 
+              India Property Network Ltd. facilitates connections but is not responsible for deal outcomes. 
               Members conduct due diligence independently.
             </p>
           </section>

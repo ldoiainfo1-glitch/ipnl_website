@@ -67,8 +67,8 @@ export default function Sidebar() {
               if (fallback) fallback.style.display = 'flex';
             }}
           />
-          <div className="w-10 h-10 bg-primary rounded-lg items-center justify-center hidden">
-            <span className="text-primary-foreground font-bold text-lg">IPN</span>
+          <div className="min-h-10 bg-primary rounded-lg items-center justify-center hidden px-3 py-2">
+            <span className="text-primary-foreground font-bold text-xs leading-tight text-center">India Property Network Ltd.</span>
           </div>
         </Link>
       </div>

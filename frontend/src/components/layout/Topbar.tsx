@@ -95,5 +95,5 @@ function getPageTitle(pathname: string): string {
     '/admin/users': 'Manage Users',
     '/admin/stats': 'Statistics',
   };
-  return titles[pathname] || 'IPN';
+  return titles[pathname] || 'India Property Network Ltd.';
 }

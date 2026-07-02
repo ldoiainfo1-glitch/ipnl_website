@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { FEATURES } from '@/lib/features';
+import { isAdminUser } from '@/lib/authRole';
 import {
   Building2,
   MessageSquare,
@@ -38,13 +39,14 @@ export default function Dashboard() {
 
   const activeMandates = myMandates.filter((m) => m.status === 'ACTIVE' && m.moderationStatus === 'APPROVED');
   const quotaRemaining = (quotaStatus?.remaining || 0);
+  const welcomeName = isAdminUser(user) ? 'IPNL,Admin' : user?.companyName;
 
   return (
     <div className="space-y-6">
       {/* Welcome */}
       <div>
         <h1 className="text-3xl font-bold">
-          Welcome back, {user?.companyName}
+          Welcome back, {welcomeName}
         </h1>
         <p className="text-muted-foreground">
           Here's what's happening with your network

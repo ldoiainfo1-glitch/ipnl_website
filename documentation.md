@@ -1,6 +1,6 @@
-India Property Networks - Complete
+India Property Network Ltd. - Complete
 Module Documentation
-Purpose: Detailed module-wise backend documentation for India Property Networks.
+Purpose: Detailed module-wise backend documentation for India Property Network Ltd.
 Module 1 – Authentication & User Management
 Features:
 • User Registration

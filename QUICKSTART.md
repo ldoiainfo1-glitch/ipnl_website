@@ -1,4 +1,4 @@
-# Quick Start Guide - INDIA PROPERTY NETWORKS
+# Quick Start Guide - India Property Network Ltd.
 
 ## ⚡ Get Started in 5 Minutes
 

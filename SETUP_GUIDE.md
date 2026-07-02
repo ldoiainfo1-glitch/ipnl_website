@@ -1,4 +1,4 @@
-# INDIA PROPERTY NETWORKS - COMPLETE SETUP GUIDE
+# India Property Network Ltd. - Complete Setup Guide
 
 ## 📋 Table of Contents
 1. [System Requirements](#system-requirements)
