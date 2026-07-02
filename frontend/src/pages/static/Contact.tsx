@@ -26,7 +26,7 @@ export default function Contact() {
             <img
               src="/assets/ipnl-logo.png?v=1"
               alt="India Property Network Ltd"
-              className="h-10 w-auto"
+              className="h-14 w-auto"
             />
             <span className="font-bold hidden sm:block">India Property Network Ltd.</span>
           </button>

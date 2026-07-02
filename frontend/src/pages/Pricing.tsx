@@ -524,7 +524,7 @@ export default function Pricing() {
   <img
     src="/assets/ipnl-logo.png?v=1"
     alt="India Property Network Ltd"
-    className="h-12 md:h-16 w-auto"
+    className="h-16 md:h-20 w-auto"
     onError={(e) => {
       console.error("Logo failed to load", e);
     }}
@@ -671,7 +671,7 @@ export default function Pricing() {
         <img
           src="/assets/ipnl-logo.png?v=1"
           alt="India Property Network Ltd"
-          className="h-14 w-auto mb-4"
+          className="h-16 w-auto mb-4"
         />
 
         <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">

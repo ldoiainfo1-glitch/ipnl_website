@@ -60,7 +60,7 @@ export default function Sidebar() {
           <img 
             src="/assets/ipnl-logo.png?v=1" 
             alt="India Property Network Ltd" 
-            className="h-12 w-auto"
+            className="h-16 w-auto"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               const fallback = e.currentTarget.nextElementSibling as HTMLElement;
