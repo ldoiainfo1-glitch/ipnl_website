@@ -79,10 +79,10 @@ export default function Contact() {
                   Phone
                 </p>
                 <a
-                  href="tel:+912240008800"
+                  href="tel:+919867477227"
                   className="text-foreground hover:text-primary transition-colors"
                 >
-                  +91 22 4000 8800
+                  +91 9867477227
                 </a>
               </div>
               <div>
@@ -90,7 +90,8 @@ export default function Contact() {
                   Office
                 </p>
                 <p className="text-foreground leading-relaxed">
-                  Lower Parel, Mumbai 400013
+                  Range Heights, A605, Link Rd, Behram Baug,
+                  Jogeshwari West, Mumbai, Maharashtra 400102
                 </p>
               </div>
             </div>
