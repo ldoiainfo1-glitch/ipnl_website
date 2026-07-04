@@ -595,7 +595,15 @@ export default function Pricing() {
                   {/* Plan cards */}
                   <div className="grid md:grid-cols-3 gap-6">
                     {cat.plans.map((plan) => (
-                      <PlanCard key={plan.key} plan={plan} onCta={() => navigate('/register')} />
+                      <PlanCard
+                        key={plan.key}
+                        plan={plan}
+                        onCta={() =>
+                          navigate(
+                            `/contact?plan=${encodeURIComponent(plan.name)}&category=${encodeURIComponent(cat.label)}&price=${encodeURIComponent(plan.price)}`
+                          )
+                        }
+                      />
                     ))}
                   </div>
 

@@ -101,6 +101,7 @@ function getPageTitle(pathname: string): string {
     '/admin/mandates': 'Manage Mandates',
     '/admin/users': 'Manage Users',
     '/admin/stats': 'Statistics',
+    '/admin/contacts': 'Contact Enquiries',
   };
   return titles[pathname] || 'India Property Network Ltd.';
 }

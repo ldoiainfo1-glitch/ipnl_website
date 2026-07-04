@@ -1,17 +1,51 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { apiClient } from '@/api/client';
 
 export default function Contact() {
   const navigate = useNavigate();
-  const [submitted, setSubmitted] = useState(false);
+  const [searchParams] = useSearchParams();
+  const planName = searchParams.get('plan');
+  const planCategory = searchParams.get('category');
+  const planPrice = searchParams.get('price');
+  const hasPlanContext = !!(planName && planCategory);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const defaultMessage = hasPlanContext
+    ? `Hi, I'm interested in the ${planName} plan (${planCategory}${planPrice ? ` — ${planPrice}/year` : ''}). Please get in touch with more details.`
+    : '';
+
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setError(null);
+    setLoading(true);
+    const form = e.currentTarget;
+    const data: Record<string, string> = {
+      name: (form.elements.namedItem('name') as HTMLInputElement).value.trim(),
+      firm: (form.elements.namedItem('firm') as HTMLInputElement).value.trim(),
+      email: (form.elements.namedItem('email') as HTMLInputElement).value.trim(),
+      phone: (form.elements.namedItem('phone') as HTMLInputElement).value.trim(),
+      message: (form.elements.namedItem('message') as HTMLTextAreaElement).value.trim(),
+    };
+    if (hasPlanContext) {
+      data.plan_context = `${planName} — ${planCategory}${planPrice ? ` (${planPrice}/year)` : ''}`;
+    }
+    try {
+      await apiClient.post('/contact', data);
+      setSubmitted(true);
+    } catch {
+      setError('Something went wrong. Please email us directly at hello@indiapropertynetwork.in');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -59,6 +93,19 @@ export default function Contact() {
               Our team responds within one business day.
             </p>
           </div>
+
+          {/* Plan context banner */}
+          {hasPlanContext && (
+            <div className="mb-10 rounded-lg border border-primary/30 bg-primary/5 px-5 py-4 flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-primary mb-0.5">Plan enquiry</p>
+                <p className="text-sm text-foreground">
+                  You're enquiring about the <strong>{planName}</strong> plan for <strong>{planCategory}</strong>
+                  {planPrice && <> at <strong>{planPrice}/year</strong></>}.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-16">
             {/* Contact details */}
@@ -109,7 +156,7 @@ export default function Contact() {
                   </Button>
                 </div>
               ) : (
-                <form className="space-y-5" onSubmit={handleSubmit}>
+                <form className="space-y-5" onSubmit={handleSubmit} ref={formRef}>
                   <div>
                     <label
                       htmlFor="name"
@@ -158,10 +205,19 @@ export default function Contact() {
                       placeholder="Tell us about your requirements..."
                       rows={5}
                       required
+                      defaultValue={defaultMessage}
                     />
                   </div>
-                  <Button type="submit" className="w-full font-semibold">
-                    Send message
+                  {error && (
+                    <p className="text-sm text-destructive">{error}</p>
+                  )}
+                  <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending…
+                      </span>
+                    ) : 'Send message'}
                   </Button>
                 </form>
               )}

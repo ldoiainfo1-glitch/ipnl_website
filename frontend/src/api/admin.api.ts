@@ -101,4 +101,9 @@ export const adminApi = {
   getLeads: async () => {
     return apiClient.get<any[]>('/leads');
   },
+
+  // Contact enquiries — submitted via the public contact form
+  getContactEnquiries: async () => {
+    return apiClient.get<any[]>('/admin/contact-enquiries');
+  },
 };

@@ -28,6 +28,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminStats from './pages/admin/AdminStats';
 import AdminAuditHistory from './pages/admin/AdminAuditHistory';
 import AdminLeads from './pages/admin/AdminLeads';
+import AdminContacts from './pages/admin/AdminContacts';
 
 // Public utility pages
 import PublicMandatePreview from './pages/PublicMandatePreview';
@@ -101,6 +102,7 @@ function App() {
               <Route path="/admin/stats" element={<AdminStats />} />
               <Route path="/admin/audit" element={<AdminAuditHistory />} />
               <Route path="/admin/leads" element={<AdminLeads />} />
+              <Route path="/admin/contacts" element={<AdminContacts />} />
             </>
           )}
         </Route>

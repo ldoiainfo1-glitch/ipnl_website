@@ -792,4 +792,20 @@ router.get('/audit-logs', verifySupabase, async (req, res) => {
   } catch (err: any) { return serverError(res, err.message); }
 });
 
+// ─── Contact Enquiries ───────────────────────────────────────────────────────
+
+router.get('/contact-enquiries', verifySupabase, async (req, res) => {
+  try {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return serverError(res, 'Supabase not configured');
+    const { data, error } = await (supabase as any)
+      .from('contact_enquiries')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) return serverError(res, error.message);
+    return res.json(data ?? []);
+  } catch (err: any) { return serverError(res, err.message); }
+});
+
 export default router;

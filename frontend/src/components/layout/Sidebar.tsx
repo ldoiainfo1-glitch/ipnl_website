@@ -15,6 +15,7 @@ import {
   UserCircle,
   Handshake,
   ScrollText,
+  Mail,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     { icon: BarChart3, label: 'Statistics', href: '/admin/stats' },
     { icon: ScrollText, label: 'Audit History', href: '/admin/audit' },
     { icon: Handshake, label: 'New Leads', href: '/admin/leads' },
+    { icon: Mail, label: 'Contact Enquiries', href: '/admin/contacts' },
   ];
 
   const isActive = (href: string) => location.pathname === href;
