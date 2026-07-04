@@ -30,7 +30,7 @@ export default function Settings() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground">
           Manage your account and subscription
         </p>
@@ -90,7 +90,7 @@ export default function Settings() {
           <CardTitle>Current Subscription</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
               <p className="text-2xl font-bold">{user?.tier} Tier</p>
               <p className="text-muted-foreground">

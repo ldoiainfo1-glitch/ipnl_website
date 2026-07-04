@@ -27,9 +27,9 @@ export default function Leaderboard() {
         <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
           TRUST LAYER
         </p>
-        <div className="flex items-center space-x-3">
-          <Trophy className="w-8 h-8 text-primary" />
-          <h1 className="text-4xl font-serif font-bold">Member Ranking</h1>
+      <div className="flex items-center gap-3 flex-wrap">
+          <Trophy className="w-7 h-7 md:w-8 md:h-8 text-primary" />
+          <h1 className="text-3xl md:text-4xl font-serif font-bold">Member Ranking</h1>
         </div>
         <p className="text-muted-foreground text-sm max-w-2xl">
           Top verified members by reputation, calculated from verification strength, peer reviews, and approved marketplace activity.
@@ -97,18 +97,18 @@ export default function Leaderboard() {
             <div
               key={entry.userId}
               className={`
-                flex items-center px-6 py-5 transition-colors
+                flex items-center px-3 md:px-6 py-4 md:py-5 transition-colors
                 ${index !== filteredLeaderboard.length - 1 ? 'border-b border-border' : ''}
                 hover:bg-secondary/30
               `}
             >
               {/* Rank Number */}
-              <div className="w-10 flex items-center justify-center text-2xl font-bold text-blue-400 mr-4">
+              <div className="w-8 md:w-10 flex items-center justify-center text-xl md:text-2xl font-bold text-blue-400 mr-3 md:mr-4 shrink-0">
                 {entry.rank}
               </div>
 
               {/* Company Logo */}
-              <div className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center overflow-hidden mr-4 shrink-0">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-secondary border border-border flex items-center justify-center overflow-hidden mr-3 md:mr-4 shrink-0">
                 {entry.user?.logo ? (
                   <img src={entry.user.logo} alt={entry.user.companyName} className="w-full h-full object-cover" />
                 ) : (
@@ -118,8 +118,8 @@ export default function Leaderboard() {
 
               {/* Member Info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-1">
-                  <h3 className="font-semibold text-lg">{entry.user?.companyName}</h3>
+                <div className="flex items-center flex-wrap gap-1.5 mb-1">
+                  <h3 className="font-semibold text-sm md:text-lg truncate">{entry.user?.companyName}</h3>
                   <Badge 
                     variant="outline" 
                     className={`
@@ -133,8 +133,8 @@ export default function Leaderboard() {
                     {entry.user?.tier === 'ENTERPRISE' ? 'ENTERPRISE' : 'KYC ✓'}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground uppercase tracking-wide">
-                  {entry.user?.role?.replace(/_/g, ' ')} • {entry.user?.companyName} • INDIA
+                <p className="text-xs text-muted-foreground uppercase tracking-wide truncate">
+                  {entry.user?.role?.replace(/_/g, ' ')} • INDIA
                 </p>
                 <div className="flex flex-wrap gap-2 mt-3 text-xs text-muted-foreground">
                   <span>Verification {entry.scoreBreakdown.verification}</span>
@@ -144,19 +144,19 @@ export default function Leaderboard() {
               </div>
 
               {/* Stats */}
-              <div className="flex items-center space-x-8">
+              <div className="flex flex-col sm:flex-row items-end sm:items-center sm:space-x-6 gap-1 shrink-0">
                 {/* Star Rating */}
-                <div className="flex items-center space-x-2">
-                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                  <span className="font-semibold text-lg">{entry.averageRating > 0 ? entry.averageRating.toFixed(1) : '—'}</span>
-                  <span className="text-sm text-muted-foreground">({entry.reviewCount})</span>
+                <div className="flex items-center space-x-1">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-semibold text-sm md:text-lg">{entry.averageRating > 0 ? entry.averageRating.toFixed(1) : '—'}</span>
+                  <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">({entry.reviewCount})</span>
                 </div>
 
                 {/* Shield Score */}
-                <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <span className="font-semibold text-lg">{entry.reputationScore}</span>
-                  <span className="text-sm text-muted-foreground">/100</span>
+                <div className="flex items-center space-x-1">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-sm md:text-lg">{entry.reputationScore}</span>
+                  <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">/100</span>
                 </div>
               </div>
             </div>

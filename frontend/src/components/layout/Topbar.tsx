@@ -1,4 +1,4 @@
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, LogOut, Menu } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getInitials } from '@/utils/formatters';
 
-export default function Topbar() {
+export default function Topbar({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
@@ -20,16 +20,23 @@ export default function Topbar() {
 
   return (
     <header className="h-16 border-b border-border bg-card sticky top-0 z-10">
-      <div className="h-full px-6 flex items-center justify-between">
-        {/* Search / Title */}
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">
+      <div className="h-full px-4 md:px-6 flex items-center justify-between">
+        {/* Hamburger (mobile) + Page title */}
+        <div className="flex items-center gap-3">
+          <button
+            className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground"
+            onClick={onMenuToggle}
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">
             {getPageTitle(location.pathname)}
           </h1>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           {/* Notifications */}
           <Button
             variant="ghost"

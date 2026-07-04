@@ -29,7 +29,9 @@ import {
   FileSearch,
   // Briefcase as BriefcaseIcon,
   Moon,
-  Sun
+  Sun,
+  Menu,
+  X,
 } from 'lucide-react';
 
 const heroSlides = [
@@ -67,6 +69,7 @@ export default function Landing() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Initialize theme from localStorage — default is light
   useEffect(() => {
@@ -108,7 +111,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <header className="border-b border-border bg-background">
+      <header className="border-b border-border bg-background sticky top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
@@ -131,7 +134,7 @@ export default function Landing() {
             />
           </div>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
             <button onClick={() => navigate('/marketplace')} className="hover:text-primary transition-colors">
               Opportunities
@@ -143,14 +146,14 @@ export default function Landing() {
             </button>
           </nav>
 
-          {/* Auth */}
-          <div className="flex items-center gap-3">
+          {/* Auth + Theme + Hamburger */}
+          <div className="flex items-center gap-2 md:gap-3">
             {/* Theme Toggle */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={toggleTheme}
-              className="hidden sm:inline-flex w-9 h-9 p-0"
+              className="w-9 h-9 p-0"
               aria-label="Toggle theme"
             >
               {isDarkMode ? (
@@ -161,7 +164,6 @@ export default function Landing() {
             </Button>
             
             {isAuthenticated ? (
-              // Authenticated user - show name and logout
               <>
                 <Button 
                   variant="ghost" 
@@ -185,25 +187,86 @@ export default function Landing() {
                 </Button>
                 <Button 
                   size="sm" 
-                  className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold" 
+                  className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold hidden sm:inline-flex" 
                   onClick={() => navigate('/dashboard')}
                 >
                   Dashboard
                 </Button>
               </>
             ) : (
-              // Not authenticated - show login buttons
               <>
                 <Button variant="ghost" size="sm" onClick={() => navigate('/login')} className="hidden md:inline-flex">
                   Sign in
                 </Button>
-                <Button size="sm" className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold" onClick={() => navigate('/register')}>
+                <Button size="sm" className="bg-[#FF9900] hover:bg-[#FF8800] text-white font-semibold hidden sm:inline-flex" onClick={() => navigate('/register')}>
                   Join the network
                 </Button>
               </>
             )}
+
+            {/* Hamburger button — mobile only */}
+            <button
+              className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground"
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile nav drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-background px-4 py-4 space-y-3">
+            <button
+              onClick={() => { navigate('/marketplace'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Opportunities
+            </button>
+            <a
+              href="#how"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              How it works
+            </a>
+            <a
+              href="#categories"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Network
+            </a>
+            <button
+              onClick={() => { navigate('/pricing'); setMobileMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              Pricing
+            </button>
+            <div className="pt-2 border-t border-border space-y-2">
+              {isAuthenticated ? (
+                <>
+                  <Button className="w-full bg-[#FF9900] hover:bg-[#FF8800] text-white" onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }}>
+                    Dashboard
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => { logout(); navigate('/'); setMobileMenuOpen(false); }}>
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button className="w-full bg-[#FF9900] hover:bg-[#FF8800] text-white" onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}>
+                    Join the network
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
+                    Sign in
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Carousel Section */}
@@ -621,34 +684,34 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-orange-50/30 to-background dark:from-[#003366]/10 dark:to-background">
         <div className="container mx-auto max-w-7xl text-center">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-24 md:gap-40 mb-28">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-16 lg:gap-24 mb-16 md:mb-28">
             <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 text-[#FF9900]">5000+</p>
-              <p className="text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 md:mb-4 text-[#FF9900]">5000+</p>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Verified Professionals
               </p>
             </div>
             <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 text-[#FF9900]">Thousands</p>
-              <p className="text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
-                Deals & Opportunities Every Month
+              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 md:mb-4 text-[#FF9900]">Thousands</p>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                Deals &amp; Opportunities Every Month
               </p>
             </div>
             <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 text-[#FF9900] whitespace-nowrap">Pan India</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 md:mb-4 text-[#FF9900]">Pan India</p>
               <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Presence
               </p>
             </div>
             <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 text-[#FF9900]">Trusted</p>
-              <p className="text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 md:mb-4 text-[#FF9900]">Trusted</p>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Verified Network
               </p>
             </div>
-            <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 text-[#FF9900] whitespace-nowrap">Real Growth</p>
-              <p className="text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+            <div className="col-span-2 md:col-span-1">
+              <p className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 md:mb-4 text-[#FF9900]">Real Growth</p>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Real Connections. Real Results.
               </p>
             </div>

@@ -68,7 +68,7 @@ export default function Notifications() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Notifications</h1>
           <p className="text-muted-foreground">
             {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
           </p>

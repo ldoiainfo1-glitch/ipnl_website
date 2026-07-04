@@ -530,11 +530,11 @@ export default function Pricing() {
     }}
   />
 </button>
-          <nav className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>Home</Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace')}>Opportunities</Button>
+          <nav className="flex items-center gap-2 md:gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="hidden sm:inline-flex">Home</Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/marketplace')} className="hidden sm:inline-flex">Opportunities</Button>
             <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>Sign in</Button>
-            <Button size="sm" onClick={() => navigate('/register')}>Join the network</Button>
+            <Button size="sm" onClick={() => navigate('/register')}>Join</Button>
           </nav>
         </div>
       </header>

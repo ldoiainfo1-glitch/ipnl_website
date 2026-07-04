@@ -72,14 +72,14 @@ export default function Marketplace() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Marketplace</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Marketplace</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
             Browse exclusive off-market mandates
           </p>
         </div>
-        <Button onClick={() => navigate('/post-mandate')}>
+        <Button onClick={() => navigate('/post-mandate')} size="sm" className="shrink-0">
           Post Mandate
         </Button>
       </div>
@@ -191,10 +191,10 @@ export default function Marketplace() {
                 className="hover:border-primary cursor-pointer transition-colors"
                 onClick={() => navigate(`/mandates/${mandate.id}`)}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4 md:p-6">
                   <div className="flex items-start gap-4">
                     {/* Company Logo */}
-                    <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shrink-0 border border-border">
                       {mandate.user?.logo ? (
                         <>
                           <img
@@ -225,23 +225,23 @@ export default function Marketplace() {
                         )}
                       </div>
 
-                      <h3 className="text-xl font-semibold mb-2">{mandate.title}</h3>
+                      <h3 className="text-lg md:text-xl font-semibold mb-2">{mandate.title}</h3>
                       
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-muted-foreground mb-3 line-clamp-2">
                         {mandate.description}
                       </p>
 
-                      <div className="flex items-center space-x-6 text-sm">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                         <div className="flex items-center text-muted-foreground">
-                          <Building2 className="w-4 h-4 mr-1" />
-                          {mandate.user?.companyName || 'Unknown company'}
+                          <Building2 className="w-4 h-4 mr-1 shrink-0" />
+                          <span className="truncate max-w-[140px]">{mandate.user?.companyName || 'Unknown company'}</span>
                         </div>
                         <div className="flex items-center text-muted-foreground">
-                          <MapPin className="w-4 h-4 mr-1" />
+                          <MapPin className="w-4 h-4 mr-1 shrink-0" />
                           {mandate.city}, {mandate.state}
                         </div>
                         <div className="flex items-center text-muted-foreground">
-                          <TrendingUp className="w-4 h-4 mr-1" />
+                          <TrendingUp className="w-4 h-4 mr-1 shrink-0" />
                           {mandate.viewCount} views
                         </div>
                         <div className="text-muted-foreground">
@@ -250,12 +250,12 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <div className="ml-6 text-right shrink-0">
-                      <p className="text-2xl font-bold text-primary">
+                    <div className="shrink-0 text-right flex flex-col items-end gap-2">
+                      <p className="text-xl md:text-2xl font-bold text-primary">
                         {formatIndianNumber(mandate.ticketSize)}
                       </p>
                       {mandate.ticketSizeMax && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs md:text-sm text-muted-foreground">
                           to {formatIndianNumber(mandate.ticketSizeMax)}
                         </p>
                       )}
@@ -263,13 +263,12 @@ export default function Marketplace() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="mt-4"
                         onClick={(event) => handleQuickMessage(event, mandate)}
                         disabled={quickMessageMutation.isPending || mandate.userId === user?.id || sentMandateIds.has(mandate.id)}
                         title={mandate.userId === user?.id ? 'You own this mandate' : 'Send a message to this mandate owner'}
                       >
                         <MessageSquare className="w-4 h-4 mr-1" />
-                        {sentMandateIds.has(mandate.id) ? 'Message Sent' : 'Message Owner'}
+                        <span className="hidden sm:inline">{sentMandateIds.has(mandate.id) ? 'Message Sent' : 'Message Owner'}</span>
                       </Button>
                     </div>
                   </div>

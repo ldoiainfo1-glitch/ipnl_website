@@ -6,7 +6,7 @@ import { useMyProfile } from '@/hooks/useProfile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BadgeInfo, Building2, Send, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { BadgeInfo, Building2, Send, MessageSquare, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { getInitials, formatRelativeTime, formatIndianNumber } from '@/utils/formatters';
 import type { User } from '@/types';
 
@@ -252,8 +252,8 @@ export default function Messages() {
   return (
     <div className="h-[calc(100vh-8rem)]">
       <div className="grid md:grid-cols-3 gap-4 h-full">
-        {/* Conversations List */}
-        <Card className="md:col-span-1 overflow-hidden">
+        {/* Conversations List — hidden on mobile when a conversation is selected */}
+        <Card className={`md:col-span-1 overflow-hidden ${selectedConversationId ? 'hidden md:flex' : 'flex'} flex-col`}>
           <CardContent className="p-0 h-full flex flex-col">
             <div className="p-4 border-b border-border">
               <h2 className="text-lg font-semibold">Messages</h2>
@@ -309,12 +309,20 @@ export default function Messages() {
           </CardContent>
         </Card>
 
-        {/* Chat Area */}
-        <Card className="md:col-span-2 overflow-hidden">
+        {/* Chat Area — hidden on mobile when no conversation selected */}
+        <Card className={`md:col-span-2 overflow-hidden ${selectedConversationId ? 'flex' : 'hidden md:flex'} flex-col`}>
           {selectedConversationId && conversation ? (
             <CardContent className="p-0 h-full flex flex-col">
               {/* Chat Header */}
               <div className="p-4 border-b border-border flex items-center space-x-3">
+                {/* Back button — mobile only */}
+                <button
+                  className="md:hidden p-1 -ml-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => setSelectedConversationId(null)}
+                  aria-label="Back to conversations"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
                 <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                   {getOtherParticipant(conversation)?.logo && (
                     <img
@@ -326,9 +334,9 @@ export default function Messages() {
                   )}
                   {getInitials(getOtherParticipant(conversation)?.companyName || 'U')}
                 </div>
-                <div>
-                  <p className="font-medium">{getOtherParticipant(conversation)?.companyName}</p>
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{getOtherParticipant(conversation)?.companyName}</p>
+                  <p className="text-sm text-muted-foreground truncate">
                     {getOtherParticipant(conversation)?.role}
                   </p>
                 </div>
@@ -336,25 +344,25 @@ export default function Messages() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="ml-auto flex items-center gap-1.5"
+                    className="ml-auto flex items-center gap-1.5 shrink-0"
                     onClick={() =>
                       profileCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                     }
                   >
                     <BadgeInfo className="w-4 h-4" />
-                    Profile Shared
+                    <span className="hidden sm:inline">Profile Shared</span>
                     <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                   </Button>
                 ) : (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="ml-auto"
+                    className="ml-auto shrink-0"
                     onClick={handleSendProfileDetails}
                     disabled={isSendingProfileDetails}
                   >
                     <BadgeInfo className="w-4 h-4 mr-1.5" />
-                    {isSendingProfileDetails ? 'Sharing…' : 'Share Profile'}
+                    <span className="hidden sm:inline">{isSendingProfileDetails ? 'Sharing…' : 'Share Profile'}</span>
                   </Button>
                 )}
               </div>
@@ -398,6 +406,70 @@ export default function Messages() {
                         key={msg.id}
                         ref={isOwnCard && isLatestCard ? profileCardRef : undefined}
                         className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        {/* Older duplicate cards — show as a collapsed line */}
+                        {displayProfile && !isLatestCard ? (
+                          <p className="text-xs text-muted-foreground italic px-1">
+                            🪪 Shared a profile card · {formatRelativeTime(msg.createdAt)}
+                          </p>
+                        ) : (
+                        <div
+                          className={`max-w-[85%] sm:max-w-[70%] rounded-lg px-4 py-3 ${
+                            msg.senderId === user?.id
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-secondary'
+                          }`}
+                        >
+                          {displayProfile ? (
+                            <SharedProfileCard
+                              profile={displayProfile}
+                              senderId={msg.senderId}
+                              currentUserId={user?.id}
+                            />
+                          ) : (
+                            <p>{msg.content}</p>
+                          )}
+                          <p className="text-xs opacity-60 mt-2 text-right">
+                            {formatRelativeTime(msg.createdAt)}
+                          </p>
+                        </div>
+                        )}
+                      </div>
+                    );
+                  })})()
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t border-border">
+                <div className="flex space-x-2">
+                  <Input
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Type a message..."
+                  />
+                  <Button onClick={handleSendMessage} disabled={!messageText.trim() || isSending}>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-medium">Select a conversation</p>
+                <p className="text-muted-foreground">Choose a conversation to start messaging</p>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
                       >
                         {/* Older duplicate cards — show as a collapsed line */}
                         {displayProfile && !isLatestCard ? (

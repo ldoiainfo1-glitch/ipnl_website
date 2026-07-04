@@ -78,9 +78,9 @@ export default function MandateDetail() {
       {/* Header Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-3">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
                   {mandate.type}
                 </Badge>
@@ -90,10 +90,10 @@ export default function MandateDetail() {
                   <Badge>Off-Market</Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold mb-2">{mandate.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{mandate.title}</h1>
             </div>
-            <div className="text-right ml-6">
-              <p className="text-3xl font-bold text-primary">
+            <div className="sm:text-right">
+              <p className="text-2xl md:text-3xl font-bold text-primary">
                 {formatIndianNumber(mandate.ticketSize)}
               </p>
               {mandate.ticketSizeMax && (

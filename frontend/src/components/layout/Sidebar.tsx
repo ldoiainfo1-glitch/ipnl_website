@@ -15,13 +15,14 @@ import {
   UserCircle,
   Handshake,
   ScrollText,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { useMyProfile } from '@/hooks/useProfile';
 import { FEATURES } from '@/lib/features';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const location = useLocation();
   const { user } = useAuth();
   const { profile } = useMyProfile();
@@ -53,10 +54,19 @@ export default function Sidebar() {
   const isActive = (href: string) => location.pathname === href;
 
   return (
-    <aside className="w-64 bg-card border-r border-border h-screen sticky top-0 flex flex-col">
+    <aside
+      className={cn(
+        'w-64 bg-card border-r border-border h-screen flex flex-col z-50 transition-transform duration-300',
+        // Desktop: always visible in normal flow
+        'md:sticky md:top-0 md:translate-x-0',
+        // Mobile: fixed drawer, toggle visibility
+        'fixed top-0 left-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      )}
+    >
       {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <Link to="/" className="flex items-center space-x-3">
+      <div className="p-6 border-b border-border flex items-center justify-between">
+        <Link to="/" className="flex items-center space-x-3" onClick={onClose}>
           <img 
             src="/assets/ipnl-logo.png?v=1" 
             alt="India Property Network Ltd" 
@@ -71,6 +81,14 @@ export default function Sidebar() {
             <span className="text-primary-foreground font-bold text-lg">IPN</span>
           </div>
         </Link>
+        {/* Close button — mobile only */}
+        <button
+          className="md:hidden p-1 rounded-md text-muted-foreground hover:text-foreground"
+          onClick={onClose}
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -79,6 +97,7 @@ export default function Sidebar() {
           <Link
             key={item.href}
             to={item.href}
+            onClick={onClose}
             className={cn(
               'flex items-center space-x-3 px-3 py-2 rounded-md transition-colors',
               isActive(item.href)
@@ -103,6 +122,7 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 to={item.href}
+                onClick={onClose}
                 className={cn(
                   'flex items-center space-x-3 px-3 py-2 rounded-md transition-colors',
                   isActive(item.href)
