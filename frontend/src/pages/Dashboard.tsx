@@ -45,13 +45,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Welcome */}
       <div>
-<<<<<<< HEAD
         <h1 className="text-2xl md:text-3xl font-bold">
-          Welcome back, {user?.companyName}
-=======
-        <h1 className="text-3xl font-bold">
           Welcome back, {welcomeName}
->>>>>>> 1efddc2103bb652c90b8ca7ae70b298d8253e2a1
         </h1>
         <p className="text-muted-foreground">
           Here's what's happening with your network
