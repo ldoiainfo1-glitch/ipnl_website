@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TYPESCRIPT TYPES FOR INDIA PROPERTY NETWORKS
+// TYPESCRIPT TYPES FOR INDIA PROPERTY NETWORK LTD.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ========== ENUMS ==========

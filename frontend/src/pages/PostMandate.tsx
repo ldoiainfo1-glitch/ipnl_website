@@ -72,7 +72,7 @@ export default function PostMandate() {
         <CardHeader>
           <CardTitle>Post New Mandate</CardTitle>
           <CardDescription>
-            Share your buy or sell mandate with the IPN network
+            Share your buy or sell mandate on India Property Network Ltd.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -316,7 +316,7 @@ export default function PostMandate() {
                   className="w-4 h-4 rounded border-input"
                 />
                 <Label htmlFor="isOffMarket" className="cursor-pointer">
-                  Mark as Off-Market (still visible inside IPN, hidden from public listing channels)
+                  Mark as Off-Market (still visible on India Property Network Ltd., hidden from public listing channels)
                 </Label>
               </div>
             </div>

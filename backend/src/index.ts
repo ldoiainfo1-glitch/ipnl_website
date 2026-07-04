@@ -48,7 +48,7 @@ app.use("/api/leads", leadsRouter);
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.get("/", (req, res) => res.json({
-  name: "India Property Networks API",
+  name: "India Property Network Ltd. API",
   version: "1.0.0",
   status: "running",
   docs: "/api/health"

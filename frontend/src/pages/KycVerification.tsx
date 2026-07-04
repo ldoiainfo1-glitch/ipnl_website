@@ -386,7 +386,7 @@ export default function KycVerification() {
                 Verified Member
               </h2>
               <p className="text-green-600 dark:text-green-400 text-sm">
-                Your KYC has been approved. You now have full access to the IPN network.
+                Your KYC has been approved. You now have full access to India Property Network Ltd.
               </p>
               {kycStatus.reviewedAt && (
                 <p className="text-xs text-muted-foreground mt-1">

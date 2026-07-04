@@ -1,4 +1,4 @@
-# INDIA PROPERTY NETWORKS (IPN)
+# India Property Network Ltd.
 
 **The Exclusive Verified Network for India's Real Estate Deal Economy**
 
@@ -350,7 +350,7 @@ useSocket();  // In App.tsx
 
 ## 📄 License
 
-Proprietary - India Property Networks © 2026
+Proprietary - India Property Network Ltd. © 2026
 
 ---
 

@@ -118,7 +118,7 @@ export default function Landing() {
             <img 
               src="/assets/ipnl-logo.png?v=1" 
               alt="India Property Network Ltd" 
-              className="h-12 md:h-16 w-auto"
+              className="h-16 md:h-20 w-auto origin-left scale-125 md:scale-140"
               onError={(e) => {
                 // Fallback if image not found
                 e.currentTarget.style.display = 'none';
@@ -496,7 +496,7 @@ export default function Landing() {
               </div>
               <h3 className="text-xl md:text-2xl font-bold mb-4 text-white">Connect</h3>
               <p className="text-gray-300 leading-relaxed">
-                Request an introduction or message the principal directly. Take the conversation forward off-platform — no brokerage held by INDIA PROPERTY NETWORKS.
+                Request an introduction or message the principal directly. Take the conversation forward off-platform — no brokerage held by India Property Network Ltd.
               </p>
             </div>
           </div>
@@ -636,7 +636,7 @@ export default function Landing() {
             <span className="text-green-600 dark:text-green-500">Every Real Estate Solution.</span>
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-3xl mx-auto">
-            India Property Network Ltd connects every stakeholder in India's real estate ecosystem — from developers and investors to vendors and technology partners.
+            India Property Network Ltd. connects every stakeholder in India's real estate ecosystem — from developers and investors to vendors and technology partners.
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -772,7 +772,7 @@ export default function Landing() {
                 <img 
                   src="/assets/ipnl-logo.png?v=1" 
                   alt="India Property Network Ltd" 
-                  className="h-10 w-auto"
+                  className="h-16 w-auto"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}

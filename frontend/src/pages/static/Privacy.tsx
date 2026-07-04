@@ -8,7 +8,7 @@ export default function Privacy() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">1. Information We Collect</h2>
             <p className="text-muted-foreground">
-              India Property Networks collects information necessary to provide our exclusive 
+              India Property Network Ltd. collects information necessary to provide our exclusive
               real estate networking platform. This includes company details, contact information, 
               KYC documents (PAN, GST, RERA), and transaction data.
             </p>

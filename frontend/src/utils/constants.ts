@@ -1,8 +1,8 @@
 import { UserRole, MandateType, PropertyType } from '@/types';
 
 // App constants
-export const APP_NAME = 'INDIA PROPERTY NETWORKS';
-export const APP_ABBREVIATION = 'IPN';
+export const APP_NAME = 'India Property Network Ltd.';
+export const APP_ABBREVIATION = 'India Property Network Ltd.';
 export const APP_TAGLINE = 'The Exclusive Verified Network for India\'s Real Estate Deal Economy';
 
 // Tier pricing (in INR)

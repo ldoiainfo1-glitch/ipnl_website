@@ -23,10 +23,12 @@ export default function Contact() {
             className="flex items-center space-x-3"
             onClick={() => navigate('/')}
           >
-            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">IPN</span>
-            </div>
-            <span className="font-bold hidden sm:block">INDIA PROPERTY NETWORKS</span>
+            <img
+              src="/assets/ipnl-logo.png?v=1"
+              alt="India Property Network Ltd"
+              className="h-16 w-auto"
+            />
+            <span className="font-bold hidden sm:block">India Property Network Ltd.</span>
           </button>
           <button
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

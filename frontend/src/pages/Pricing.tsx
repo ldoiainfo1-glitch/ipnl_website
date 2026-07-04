@@ -221,7 +221,7 @@ const CATEGORIES = [
 
 const TRUST_POINTS = [
   { icon: Shield, title: 'Verified principals only', desc: 'Every firm passes KYC and a manual admin review before they can transact on the network.' },
-  { icon: Handshake, title: 'Direct, no brokerage', desc: 'Connect principal-to-principal. INDIA PROPERTY NETWORKS holds no brokerage on closed deals.' },
+  { icon: Handshake, title: 'Direct, no brokerage', desc: 'Connect principal-to-principal. India Property Network Ltd. holds no brokerage on closed deals.' },
   { icon: Star, title: 'Concierge onboarding', desc: 'Pro and Premium members get hands-on onboarding within 48 hours.' },
 ];
 
@@ -229,7 +229,7 @@ const FAQS = [
   { q: 'Why does pricing vary by category?', a: 'Different member categories have different use-cases, mandate volumes, and network value. The pricing is calibrated to reflect the depth of access and features relevant to each category.' },
   { q: 'Is GST included in the membership price?', a: 'No. All prices listed are exclusive of GST. Applicable GST will be added at the time of invoicing.' },
   { q: 'Can I upgrade or downgrade mid-cycle?', a: 'You can upgrade at any time — the difference is billed on a pro-rata basis. Downgrades take effect at the start of the next annual cycle.' },
-  { q: 'Do you take brokerage on closed transactions?', a: 'No. INDIA PROPERTY NETWORKS is a subscription-based platform. We do not participate in, track, or charge brokerage on any deal closed through the network.' },
+  { q: 'Do you take brokerage on closed transactions?', a: 'No. India Property Network Ltd. is a subscription-based platform. We do not participate in, track, or charge brokerage on any deal closed through the network.' },
   { q: 'What does manual admin review include?', a: 'Our team verifies your PAN, GST, RERA registration (where applicable), company documents, and director details before granting transactional access.' },
   { q: 'How are seats counted for Pro and Premium?', a: 'Each seat is a named user login under your firm account. Pro includes 2–3 seats; Premium includes 5+ seats with custom role workflows. Additional seats can be added on request.' },
 ];
@@ -524,7 +524,7 @@ export default function Pricing() {
   <img
     src="/assets/ipnl-logo.png?v=1"
     alt="India Property Network Ltd"
-    className="h-12 md:h-16 w-auto"
+    className="h-16 md:h-20 w-auto origin-left scale-125 md:scale-140"
     onError={(e) => {
       console.error("Logo failed to load", e);
     }}
@@ -671,7 +671,7 @@ export default function Pricing() {
         <img
           src="/assets/ipnl-logo.png?v=1"
           alt="India Property Network Ltd"
-          className="h-14 w-auto mb-4"
+          className="h-20 w-auto mb-4"
         />
 
         <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">

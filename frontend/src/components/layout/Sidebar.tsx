@@ -70,15 +70,15 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
           <img 
             src="/assets/ipnl-logo.png?v=1" 
             alt="India Property Network Ltd" 
-            className="h-12 w-auto"
+            className="h-20 w-auto"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               const fallback = e.currentTarget.nextElementSibling as HTMLElement;
               if (fallback) fallback.style.display = 'flex';
             }}
           />
-          <div className="w-10 h-10 bg-primary rounded-lg items-center justify-center hidden">
-            <span className="text-primary-foreground font-bold text-lg">IPN</span>
+          <div className="min-h-10 bg-primary rounded-lg items-center justify-center hidden px-3 py-2">
+            <span className="text-primary-foreground font-bold text-xs leading-tight text-center">India Property Network Ltd.</span>
           </div>
         </Link>
         {/* Close button — mobile only */}

@@ -54,7 +54,12 @@ export default function Auth() {
         if (pendingEnquiry) {
           try {
             const enquiryData = JSON.parse(pendingEnquiry);
-            await apiClient.post('/leads', enquiryData);
+            await apiClient.post('/leads', {
+              ...enquiryData,
+              name: formData.companyName,
+              mobile: formData.mobile,
+              email: formData.email,
+            });
           } catch {
             // non-critical — don't block navigation
           } finally {
@@ -75,7 +80,7 @@ export default function Auth() {
         <CardDescription>
           {isLogin 
             ? 'Enter your credentials to access your account' 
-            : 'Join the exclusive IPN network'}
+            : 'Join India Property Network Ltd.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
