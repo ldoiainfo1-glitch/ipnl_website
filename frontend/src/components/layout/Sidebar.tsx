@@ -72,7 +72,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
           <img 
             src="/assets/ipnl-logo.png?v=1" 
             alt="India Property Network Ltd" 
-            className="h-20 w-auto"
+            className="h-10 w-auto"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               const fallback = e.currentTarget.nextElementSibling as HTMLElement;

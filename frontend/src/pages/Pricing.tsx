@@ -679,7 +679,7 @@ export default function Pricing() {
         <img
           src="/assets/ipnl-logo.png?v=1"
           alt="India Property Network Ltd"
-          className="h-20 w-auto mb-4"
+          className="h-16 w-auto mb-4"
         />
 
         <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
