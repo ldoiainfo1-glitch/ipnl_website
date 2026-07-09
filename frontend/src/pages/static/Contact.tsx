@@ -115,10 +115,10 @@ export default function Contact() {
                   Email
                 </p>
                 <a
-                  href="mailto:hello@indiapropertynetwork.in"
+                  href="mailto:info@indiapropertynetwork.com"
                   className="text-foreground hover:text-primary transition-colors"
                 >
-                  hello@indiapropertynetwork.in
+                  info@indiapropertynetwork.com
                 </a>
               </div>
               <div>

@@ -266,7 +266,7 @@ export default function KycVerification() {
       } else {
         await submitKyc(payload);
       }
-      alert('KYC documents submitted successfully. Our team will review within 2-3 business days.');
+      alert('KYC documents submitted successfully. Our team will review within 24 hours.');
     } catch {
       alert('Submission failed. Please try again.');
     }
@@ -435,7 +435,7 @@ export default function KycVerification() {
             {kycStatus.status === KycStatus.UNDER_REVIEW && (
               <div className="mt-4 flex items-center gap-2 text-sm text-amber-600">
                 <AlertCircle className="w-4 h-4" />
-                <span>Our compliance team is reviewing your documents. This typically takes 2–3 business days.</span>
+                <span>Our compliance team is reviewing your documents. This typically takes 24 hours.</span>
               </div>
             )}
           </CardContent>
