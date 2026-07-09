@@ -656,6 +656,7 @@ export default function Landing() {
               { title: 'Technology Partners', icon: Laptop, items: ['PropTech Solutions', 'CRM / ERP Systems', 'Digital Transformation', 'Data & Analytics'] },
               { title: 'Technical & Survey Experts', icon: FileSearch, items: ['Land Survey', 'Valuation', 'Geo-technical Reports', 'Feasibility Studies'] },
               { title: 'Institutional & Corporate Partners', icon: Briefcase, items: ['REITs & Asset Managers', 'Corporate Occupiers', 'Hospitality Operators', 'Long Term Leases'] },
+              { title: 'Solar & Renewable Energy Partners', icon: Sun, items: ['Rooftop Solar Solutions', 'Commercial & Industrial Solar Solutions', 'Open Access & Captive Power Solutions', 'EV Charging Infrastructure', 'Energy Storage & Battery Systems'] },
             ].map((category, idx) => {
               const IconComponent = category.icon;
               return (
