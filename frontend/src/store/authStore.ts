@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (data: RegisterRequest) => {
         try {
           if (supabase) {
-            const result = await supabase.auth.signUp({ email: data.email, password: (data as any).password, options: { data: { companyName: data.companyName } } });
+            const result = await supabase.auth.signUp({ email: data.email, password: (data as any).password, options: { data: { companyName: data.companyName, role: data.role, mobile: data.mobile, pan: data.pan, gst: data.gst, reraNumber: data.reraNumber, } } });
             if (result.error) throw result.error;
             const user = normalizeAuthUser(result.data.user as any);
             const token = result.data.session?.access_token;
