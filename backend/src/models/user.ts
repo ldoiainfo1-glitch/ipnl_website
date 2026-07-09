@@ -1,4 +1,4 @@
-export type Role = 'user' | 'admin';
+export type Role = 'DEVELOPER' | 'BROKER' | 'FAMILY_OFFICE' | 'HNI' | 'NBFC_FUND_REIT' | 'LAND_AGGREGATOR' | 'ADMIN';
 
 export interface User {
   id: string;
@@ -19,6 +19,11 @@ export interface RegisterRequest {
   password: string;
   name?: string;
   companyName?: string;
+  mobile?: string;
+  role: Role;
+  pan?: string;
+  gst?: string;
+  reraNumber?: string;
 }
 
 export interface LoginRequest {

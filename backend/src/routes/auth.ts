@@ -1,7 +1,8 @@
+
 import express from 'express';
 import { getSupabaseAdmin } from '../lib/supabaseServer';
 import { v4 as uuidv4 } from 'uuid';
-import { LoginRequest, RegisterRequest } from '../models/user';
+import { Role, LoginRequest, RegisterRequest } from '../models/user';
 import { toUserDTO } from '../models/profile';
 
 const router = express.Router();
@@ -18,7 +19,7 @@ router.post('/register', async (req, res) => {
     const { data, error } = await supabase.auth.admin.createUser({
       email: body.email,
       password: body.password,
-      user_metadata: { name: body.name, companyName: body.companyName },
+      user_metadata: { name: body.name, companyName: body.companyName, role: body.role, mobile: body.mobile, pan: body.pan, gst: body.gst, reraNumber: body.reraNumber },
     });
     
     if (error) return res.status(409).json({ message: error.message });
@@ -30,6 +31,12 @@ router.post('/register', async (req, res) => {
         email: data.user?.email,
         name: body.name,
         companyName: body.companyName,
+        mobile: body.mobile,
+        role: body.role,
+        pan: body.pan,
+        gst: body.gst,
+        rera_number: body.reraNumber,
+
       }, 
       message: 'User created. Please login.' 
     });
