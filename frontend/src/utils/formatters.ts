@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
+import { PARTNER_CATEGORIES } from './constants';
 
 // Format currency in INR
 export const formatCurrency = (amount: number): string => {
@@ -50,6 +51,11 @@ export const formatPhoneNumber = (phone: string): string => {
   return phone;
 };
 
+// Format partner category enum value into its display label
+export const formatPartnerCategory = (category?: string): string => {
+  return PARTNER_CATEGORIES.find((c) => c.value === category)?.label ?? category ?? '—';
+};
+
 // Truncate text
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
@@ -66,7 +72,10 @@ export const formatUserRole = (role: string): string => {
 
 // Format mandate type
 export const formatMandateType = (type: string): string => {
-  return type.charAt(0) + type.slice(1).toLowerCase();
+  return type
+    .split('_')
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ');
 };
 
 // Get initials from name
