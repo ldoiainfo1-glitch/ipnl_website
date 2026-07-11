@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES } from '@/utils/constants';
-import { MandateType, CreateMandateRequest, PropertyType } from '@/types';
+import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES, PARTNER_CATEGORIES } from '@/utils/constants';
+import { MandateType, CreateMandateRequest, PropertyType, PartnerCategory } from '@/types';
 
 export default function PostMandate() {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ export default function PostMandate() {
     state: '',
     locality: '',
     propertyType: PropertyType.RESIDENTIAL_LAND,
+    category: PartnerCategory.DEVELOPERS_BUILDERS,
     builtUpArea: undefined,
     plotArea: undefined,
     ticketSize: 0,
@@ -96,7 +97,7 @@ export default function PostMandate() {
                         }
                       `}
                     >
-                      BUY-SIDE (LOOKING FOR)
+                      BUY-SIDE 
                     </button>
                     <button
                       type="button"
@@ -109,7 +110,33 @@ export default function PostMandate() {
                         }
                       `}
                     >
-                      SELL-SIDE (OFFERING)
+                      SELL-SIDE 
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: MandateType.BUY })}
+                      className={`
+                        flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
+                        ${formData.type === MandateType.BUY
+                          ? 'bg-blue-500/20 text-blue-400 border-r border-input'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
+                        }
+                      `}
+                    >
+                      LOOKING FOR
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: MandateType.BUY })}
+                      className={`
+                        flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
+                        ${formData.type === MandateType.BUY
+                          ? 'bg-blue-500/20 text-blue-400 border-r border-input'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
+                        }
+                      `}
+                    >
+                      OFFERING 
                     </button>
                   </div>
                 </div>
@@ -129,6 +156,27 @@ export default function PostMandate() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <Label className="text-sm uppercase tracking-wider text-muted-foreground">Categories *</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {PARTNER_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, category: cat.value })}
+                        className={`
+                          px-4 py-2 rounded-full text-sm font-medium border transition-colors duration-150
+                          ${formData.category === cat.value
+                            ? 'bg-foreground text-background border-foreground'
+                            : 'bg-transparent text-muted-foreground border-input hover:bg-secondary/50'
+                          }
+                        `}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

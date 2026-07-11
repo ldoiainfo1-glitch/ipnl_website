@@ -1,4 +1,4 @@
-import { UserRole, MandateType, PropertyType } from '@/types';
+import { UserRole, MandateType, PropertyType, PartnerCategory } from '@/types';
 
 // App constants
 export const APP_NAME = 'India Property Network Ltd.';
@@ -142,6 +142,24 @@ export const INDIAN_STATES = [
   'West Bengal',
   'Delhi',
 ] as const;
+
+export const PARTNER_CATEGORIES: { value: PartnerCategory; label: string }[] = [
+  { value: PartnerCategory.DEVELOPERS_BUILDERS, label: 'Developers / Builders' },
+  { value: PartnerCategory.BROKERS_CHANNEL_PARTNERS, label: 'Brokers & Channel Partners' },
+  { value: PartnerCategory.INVESTORS_HNI_FAMILY_OFFICES, label: 'Investors / HNIs / Family Offices & Institutions' },
+  { value: PartnerCategory.LANDOWNERS, label: 'Landowners' },
+  { value: PartnerCategory.SOCIETY_REDEVELOPMENT_COMMITTEES, label: 'Society Redevelopment Committees' },
+  { value: PartnerCategory.FINANCIAL_INSTITUTIONS_LENDERS, label: 'Financial Institutions & Lenders' },
+  { value: PartnerCategory.INSTITUTIONAL_CORPORATE_PARTNERS, label: 'Institutional & Corporate Partners (REITs, Asset Managers, Hospitality)' },
+  { value: PartnerCategory.ARCHITECTS_DESIGNERS, label: 'Architects & Designers' },
+  { value: PartnerCategory.PMC_CONSULTANTS, label: 'PMC & Consultants' },
+  { value: PartnerCategory.CONSTRUCTION_CONTRACTORS, label: 'Construction Contractors' },
+  { value: PartnerCategory.TECHNICAL_SURVEY_EXPERTS, label: 'Technical & Survey Experts' },
+  { value: PartnerCategory.LEGAL_COMPLIANCE_PROFESSIONALS, label: 'Legal & Compliance Professionals' },
+  { value: PartnerCategory.VENDORS_SUPPLIERS, label: 'Vendors & Suppliers' },
+  { value: PartnerCategory.MARKETING_SALES_PARTNERS, label: 'Marketing & Sales Partners' },
+  { value: PartnerCategory.TECHNOLOGY_PARTNERS, label: 'Technology Partners' },
+];
 
 // Ticket size ranges (in INR)
 export const TICKET_SIZE_RANGES = [

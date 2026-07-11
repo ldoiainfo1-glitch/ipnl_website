@@ -38,6 +38,8 @@ export enum KycStatus {
 export enum MandateType {
   BUY = 'BUY',
   SELL = 'SELL',
+  LOOKING_FOR = 'LOOKING_FOR',
+  OFFERING = 'OFFERING',
 }
 
 export enum MandateStatus {
@@ -76,6 +78,24 @@ export enum PropertyType {
   HOSPITALITY_RESORTS = 'HOSPITALITY_RESORTS',
   // Mixed Use types
   MIXED_USE_TOWNSHIPS = 'MIXED_USE_TOWNSHIPS',
+}
+
+export enum PartnerCategory {
+  DEVELOPERS_BUILDERS = 'DEVELOPERS_BUILDERS',
+  BROKERS_CHANNEL_PARTNERS = 'BROKERS_CHANNEL_PARTNERS',
+  INVESTORS_HNI_FAMILY_OFFICES = 'INVESTORS_HNI_FAMILY_OFFICES',
+  LANDOWNERS = 'LANDOWNERS',
+  SOCIETY_REDEVELOPMENT_COMMITTEES = 'SOCIETY_REDEVELOPMENT_COMMITTEES',
+  FINANCIAL_INSTITUTIONS_LENDERS = 'FINANCIAL_INSTITUTIONS_LENDERS',
+  INSTITUTIONAL_CORPORATE_PARTNERS = 'INSTITUTIONAL_CORPORATE_PARTNERS',
+  ARCHITECTS_DESIGNERS = 'ARCHITECTS_DESIGNERS',
+  PMC_CONSULTANTS = 'PMC_CONSULTANTS',
+  CONSTRUCTION_CONTRACTORS = 'CONSTRUCTION_CONTRACTORS',
+  TECHNICAL_SURVEY_EXPERTS = 'TECHNICAL_SURVEY_EXPERTS',
+  LEGAL_COMPLIANCE_PROFESSIONALS = 'LEGAL_COMPLIANCE_PROFESSIONALS',
+  VENDORS_SUPPLIERS = 'VENDORS_SUPPLIERS',
+  MARKETING_SALES_PARTNERS = 'MARKETING_SALES_PARTNERS',
+  TECHNOLOGY_PARTNERS = 'TECHNOLOGY_PARTNERS',
 }
 
 export enum IntroStatus {
@@ -164,6 +184,7 @@ export interface Mandate {
   // Asset Details
   assetClass: AssetClass;
   propertyType?: PropertyType;
+  category: PartnerCategory; 
   builtUpArea?: number;
   plotArea?: number;
   
@@ -396,6 +417,7 @@ export interface CreateMandateRequest {
   state: string;
   locality?: string;
   propertyType: PropertyType;
+  category: PartnerCategory;
   builtUpArea?: number;
   plotArea?: number;
   ticketSize: number;
