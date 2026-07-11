@@ -12,7 +12,7 @@ interface MandatePreviewData {
   asset: string;
   ticket: string;
   initial: string;
-  side: 'buy' | 'sell';
+  side: 'buy' | 'sell' | 'looking_for' | 'offering';
 }
 
 export default function PublicMandatePreview() {
@@ -37,6 +37,25 @@ export default function PublicMandatePreview() {
       localStorage.setItem('theme', 'light');
     }
   };
+
+  const SIDE_BADGE_CONFIG: Record<MandatePreviewData['side'], { label: string; className: string }> = {
+  buy: {
+    label: 'Buy-side Mandate',
+    className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-0',
+  },
+  sell: {
+    label: 'Sell-side Mandate',
+    className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-0',
+  },
+  looking_for: {
+    label: 'Looking For',
+    className: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-0',
+  },
+  offering: {
+    label: 'Offering',
+    className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-0',
+  },
+};
 
   const mandate: MandatePreviewData | undefined = location.state?.mandate;
 
@@ -127,14 +146,8 @@ export default function PublicMandatePreview() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Badge
-                  className={
-                    mandate.side === 'buy'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-0'
-                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-0'
-                  }
-                >
-                  {mandate.side === 'buy' ? 'Buy-side Mandate' : 'Sell-side Mandate'}
+                <Badge className={SIDE_BADGE_CONFIG[mandate.side].className}>
+                    {SIDE_BADGE_CONFIG[mandate.side].label}
                 </Badge>
                 <Badge variant="outline">{mandate.type}</Badge>
               </div>
