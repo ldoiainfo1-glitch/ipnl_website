@@ -105,7 +105,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          type: 'BUY' | 'SELL';
+          type: 'BUY' | 'SELL' | 'LOOKING_FOR' | 'OFFERING';
           status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'EXPIRED';
           title: string;
           description: string;
@@ -138,7 +138,7 @@ export interface Database {
         Insert: Partial<{
           id: string;
           user_id: string;
-          type: 'BUY' | 'SELL';
+          type: 'BUY' | 'SELL' | 'LOOKING_FOR' | 'OFFERING';
           status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'EXPIRED';
           title: string;
           description: string;
@@ -175,7 +175,7 @@ export interface Database {
         Update: Partial<{
           id: string;
           user_id: string;
-          type: 'BUY' | 'SELL';
+          type: 'BUY' | 'SELL' | 'LOOKING_FOR' | 'OFFERING';
           status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'EXPIRED';
           title: string;
           description: string;

@@ -14,7 +14,7 @@ async function getAdminUserIds(supabase: NonNullable<ReturnType<typeof getSupaba
   return (data ?? []).map((p: { id: string }) => p.id);
 }
 
-const MANDATE_TYPES = ['BUY', 'SELL'] as const;
+const MANDATE_TYPES = ['BUY', 'SELL', 'LOOKING_FOR', 'OFFERING'] as const;
 const ASSET_CLASSES = [
   'RESIDENTIAL',
   'COMMERCIAL',
@@ -151,7 +151,7 @@ router.get('/', async (req, res) => {
       if (!(MANDATE_TYPES as readonly string[]).includes(type)) {
         return badRequest(res, `Invalid type filter: ${type}`);
       }
-      query = query.eq('type', type as 'BUY' | 'SELL');
+      query = query.eq('type', type as 'BUY' | 'SELL' | 'LOOKING_FOR' | 'OFFERING');
     }
     if (assetClass) {
       if (!(ASSET_CLASSES as readonly string[]).includes(assetClass)) {
@@ -232,7 +232,7 @@ router.get('/my', verifySupabase, async (req, res) => {
       if (!(MANDATE_TYPES as readonly string[]).includes(type)) {
         return badRequest(res, `Invalid type filter: ${type}`);
       }
-      query = query.eq('type', type as 'BUY' | 'SELL');
+      query = query.eq('type', type as 'BUY' | 'SELL' | 'LOOKING_FOR' | 'OFFERING');
     }
     if (assetClass) {
       if (!(ASSET_CLASSES as readonly string[]).includes(assetClass)) {
@@ -335,6 +335,9 @@ router.post('/', verifySupabase, async (req, res) => {
         res,
         'type, title, description, city, state, propertyType, category, and ticketSize are required'
       );
+    }
+    if (!(MANDATE_TYPES as readonly string[]).includes(type)) {
+      return badRequest(res, `Invalid type: ${type}`);
     }
     if (!(PARTNER_CATEGORIES as readonly string[]).includes(category)) {
       return badRequest(res, `Invalid category: ${category}`);
