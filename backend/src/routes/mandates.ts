@@ -25,6 +25,24 @@ const ASSET_CLASSES = [
   'MIXED_USE',
 ] as const;
 
+const PARTNER_CATEGORIES = [
+  'DEVELOPERS_BUILDERS',
+  'BROKERS_CHANNEL_PARTNERS',
+  'INVESTORS_HNI_FAMILY_OFFICES',
+  'LANDOWNERS',
+  'SOCIETY_REDEVELOPMENT_COMMITTEES',
+  'FINANCIAL_INSTITUTIONS_LENDERS',
+  'INSTITUTIONAL_CORPORATE_PARTNERS',
+  'ARCHITECTS_DESIGNERS',
+  'PMC_CONSULTANTS',
+  'CONSTRUCTION_CONTRACTORS',
+  'TECHNICAL_SURVEY_EXPERTS',
+  'LEGAL_COMPLIANCE_PROFESSIONALS',
+  'VENDORS_SUPPLIERS',
+  'MARKETING_SALES_PARTNERS',
+  'TECHNOLOGY_PARTNERS',
+] as const;
+
 const SORT_COLUMN_MAP: Record<string, string> = {
   createdAt: 'created_at',
   ticketSize: 'ticket_size',
@@ -311,12 +329,15 @@ router.post('/', verifySupabase, async (req, res) => {
     if (!supabase) return serverError(res, 'Supabase not configured');
     if (!req.user) return unauthorized(res);
 
-    const { type, title, description, city, state, propertyType, ticketSize, tags, isOffMarket } = req.body;
-    if (!type || !title || !description || !city || !state || !propertyType || ticketSize == null) {
+    const { type, title, description, city, state, propertyType, category, ticketSize, tags, isOffMarket } = req.body;
+    if (!type || !title || !description || !city || !state || !propertyType || !category || ticketSize == null) {
       return badRequest(
         res,
-        'type, title, description, city, state, propertyType, and ticketSize are required'
+        'type, title, description, city, state, propertyType, category, and ticketSize are required'
       );
+    }
+    if (!(PARTNER_CATEGORIES as readonly string[]).includes(category)) {
+      return badRequest(res, `Invalid category: ${category}`);
     }
 
     const payload = toMandateInsertPayload(req.user.id, {

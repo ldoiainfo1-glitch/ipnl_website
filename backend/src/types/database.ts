@@ -122,6 +122,7 @@ export interface Database {
             | 'MIXED_USE'
             | null;
           property_type: string | null;
+          category: string | null;
           built_up_area: number | null;
           plot_area: number | null;
           ticket_size: number;
@@ -154,6 +155,7 @@ export interface Database {
             | 'MIXED_USE'
             | null;
           property_type: string | null;
+          category: string | null;
           built_up_area: number | null;
           plot_area: number | null;
           ticket_size: number;
@@ -190,6 +192,7 @@ export interface Database {
             | 'MIXED_USE'
             | null;
           property_type: string | null;
+          category: string | null;
           built_up_area: number | null;
           plot_area: number | null;
           ticket_size: number;

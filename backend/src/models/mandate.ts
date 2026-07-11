@@ -27,6 +27,7 @@ export function toMandateDTO(row: MandateRow) {
 
     assetClass: row.asset_class ?? undefined,
     propertyType: row.property_type ?? undefined,
+    category: row.category ?? undefined,
     builtUpArea: row.built_up_area != null ? Number(row.built_up_area) : undefined,
     plotArea: row.plot_area != null ? Number(row.plot_area) : undefined,
 
@@ -61,6 +62,7 @@ interface MandateWritableFields {
   state?: string;
   locality?: string;
   propertyType?: string;
+  category?: string;          
   builtUpArea?: number;
   plotArea?: number;
   ticketSize?: number;
@@ -78,6 +80,7 @@ function pickWritableFields(body: Record<string, any>): MandateWritableFields {
   if (body.state !== undefined) picked.state = body.state;
   if (body.locality !== undefined) picked.locality = body.locality;
   if (body.propertyType !== undefined) picked.propertyType = body.propertyType;
+  if (body.category !== undefined) picked.category = body.category;
   if (body.builtUpArea !== undefined) picked.builtUpArea = body.builtUpArea;
   if (body.plotArea !== undefined) picked.plotArea = body.plotArea;
   if (body.ticketSize !== undefined) picked.ticketSize = body.ticketSize;
@@ -99,6 +102,7 @@ export function toMandateInsertPayload(userId: string, body: Record<string, any>
   if (f.state !== undefined) payload.state = f.state;
   if (f.locality !== undefined) payload.locality = f.locality;
   if (f.propertyType !== undefined) payload.property_type = f.propertyType;
+  if (f.category !== undefined) payload.category = f.category;
   if (f.builtUpArea !== undefined) payload.built_up_area = f.builtUpArea;
   if (f.plotArea !== undefined) payload.plot_area = f.plotArea;
   if (f.ticketSize !== undefined) payload.ticket_size = f.ticketSize;
@@ -118,6 +122,7 @@ export function toMandateUpdatePayload(body: Record<string, any>): MandateUpdate
   if (f.state !== undefined) payload.state = f.state;
   if (f.locality !== undefined) payload.locality = f.locality;
   if (f.propertyType !== undefined) payload.property_type = f.propertyType;
+  if (f.category !== undefined) payload.category = f.category;
   if (f.builtUpArea !== undefined) payload.built_up_area = f.builtUpArea;
   if (f.plotArea !== undefined) payload.plot_area = f.plotArea;
   if (f.ticketSize !== undefined) payload.ticket_size = f.ticketSize;
