@@ -83,7 +83,7 @@ export default function PostMandate() {
               <h3 className="text-lg font-semibold">Basic Information</h3>
               
               <div className="space-y-4">
-                <div>
+               <div>
                   <Label className="text-sm uppercase tracking-wider text-muted-foreground">Mandate Type</Label>
                   <div className="flex gap-0 mt-2 border border-input rounded-md overflow-hidden">
                     <button
@@ -97,7 +97,7 @@ export default function PostMandate() {
                         }
                       `}
                     >
-                      BUY-SIDE 
+                      BUY-SIDE
                     </button>
                     <button
                       type="button"
@@ -105,19 +105,19 @@ export default function PostMandate() {
                       className={`
                         flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
                         ${formData.type === MandateType.SELL
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50'
+                          ? 'bg-blue-500/20 text-blue-400 border-r border-input'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
                         }
                       `}
                     >
-                      SELL-SIDE 
+                      SELL-SIDE
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, type: MandateType.BUY })}
+                      onClick={() => setFormData({ ...formData, type: MandateType.LOOKING_FOR })}
                       className={`
                         flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
-                        ${formData.type === MandateType.BUY
+                        ${formData.type === MandateType.LOOKING_FOR
                           ? 'bg-blue-500/20 text-blue-400 border-r border-input'
                           : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
                         }
@@ -127,16 +127,16 @@ export default function PostMandate() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, type: MandateType.BUY })}
+                      onClick={() => setFormData({ ...formData, type: MandateType.OFFERING })}
                       className={`
                         flex-1 py-4 px-6 font-semibold text-sm uppercase tracking-wide transition-all duration-200
-                        ${formData.type === MandateType.BUY
-                          ? 'bg-blue-500/20 text-blue-400 border-r border-input'
-                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50 border-r border-input'
+                        ${formData.type === MandateType.OFFERING
+                          ? 'bg-blue-500/20 text-blue-400'
+                          : 'bg-transparent text-muted-foreground hover:bg-secondary/50'
                         }
                       `}
                     >
-                      OFFERING 
+                      OFFERING
                     </button>
                   </div>
                 </div>

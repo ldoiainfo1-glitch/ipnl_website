@@ -16,7 +16,7 @@ import {
   Send,
   ArrowLeft,
 } from 'lucide-react';
-import { formatIndianNumber, formatDate, formatArea } from '@/utils/formatters';
+import { formatIndianNumber, formatDate, formatArea, formatPartnerCategory } from '@/utils/formatters';
 
 export default function MandateDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +27,12 @@ export default function MandateDetail() {
   
   const [showIntroForm, setShowIntroForm] = useState(false);
   const [introMessage, setIntroMessage] = useState('');
+  const TYPE_BADGE_VARIANT: Record<string, 'success' | 'default' | 'secondary' | 'outline'> = {
+  BUY: 'success',
+  SELL: 'default',
+  LOOKING_FOR: 'secondary',
+  OFFERING: 'outline',
+};
 
   const handleSendIntro = async () => {
     if (!mandate || !introMessage.trim()) return;
@@ -81,10 +87,11 @@ export default function MandateDetail() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
-                  {mandate.type}
+                <Badge variant={TYPE_BADGE_VARIANT[mandate.type] || 'default'}>
+                    {mandate.type}
                 </Badge>
                 <Badge variant="outline">{mandate.assetClass}</Badge>
+                <Badge variant="outline">{formatPartnerCategory(mandate.category)}</Badge>
                 <Badge variant="secondary">{mandate.status}</Badge>
                 {mandate.isOffMarket && (
                   <Badge>Off-Market</Badge>
@@ -163,6 +170,10 @@ export default function MandateDetail() {
                 <p className="font-medium">{mandate.locality}</p>
               </div>
             )}
+            <div>
+                <p className="text-sm text-muted-foreground mb-1">Category</p>
+                <p className="font-medium">{formatPartnerCategory(mandate.category)}</p>
+            </div>
             <div>
               <p className="text-sm text-muted-foreground mb-1">Tags</p>
               <div className="flex flex-wrap gap-2">

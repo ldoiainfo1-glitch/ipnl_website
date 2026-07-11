@@ -84,6 +84,8 @@ export const ASSET_CLASSES = [
 export const MANDATE_TYPES = [
   { value: MandateType.BUY, label: 'Buy', color: 'text-green-500' },
   { value: MandateType.SELL, label: 'Sell', color: 'text-amber-500' },
+  { value: MandateType.LOOKING_FOR, label: 'Looking For', color: 'text-purple-500' },
+  { value: MandateType.OFFERING, label: 'Offering', color: 'text-blue-500' },
 ] as const;
 
 // Indian cities (major real estate markets)

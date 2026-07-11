@@ -16,7 +16,7 @@ import {
   Filter,
   MessageSquare
 } from 'lucide-react';
-import { formatIndianNumber, formatRelativeTime } from '@/utils/formatters';
+import { formatIndianNumber, formatRelativeTime, formatPartnerCategory } from '@/utils/formatters';
 import { ASSET_CLASSES, INDIAN_CITIES, MANDATE_TYPES } from '@/utils/constants';
 import { Mandate, MandateFilters, MandateType, AssetClass } from '@/types';
 
@@ -68,6 +68,13 @@ export default function Marketplace() {
       alert(error.detail || 'Unable to send message to the mandate owner');
     }
   };
+
+  const TYPE_BADGE_VARIANT: Record<string, 'success' | 'default' | 'secondary' | 'outline'> = {
+  BUY: 'success',
+  SELL: 'default',
+  LOOKING_FOR: 'secondary',
+  OFFERING: 'outline',
+};
 
   return (
     <div className="space-y-6">
@@ -216,10 +223,11 @@ export default function Marketplace() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3 mb-3">
-                        <Badge variant={mandate.type === 'BUY' ? 'success' : 'default'}>
-                          {mandate.type}
+                        <Badge variant={TYPE_BADGE_VARIANT[mandate.type] || 'default'}>
+                           {mandate.type}
                         </Badge>
                         <Badge variant="outline">{mandate.assetClass}</Badge>
+                        <Badge variant="outline">{formatPartnerCategory(mandate.category)}</Badge>
                         {mandate.isOffMarket && (
                           <Badge variant="secondary">Off-Market</Badge>
                         )}
