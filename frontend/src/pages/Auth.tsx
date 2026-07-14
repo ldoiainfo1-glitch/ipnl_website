@@ -9,8 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { USER_ROLES } from '@/utils/constants';
 import { apiClient } from '@/api/client';
 
+
 export default function Auth() {
+
   const location = useLocation();
+  const loginMessage = location.state?.message;
   const navigate = useNavigate();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
   
@@ -18,7 +21,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
+   email: location.state?.email || '',
     password: '',
     companyName: '',
     mobile: '',
@@ -67,10 +70,41 @@ export default function Auth() {
           }
         }
       }
-      navigate('/dashboard');
-    } catch (error: any) {
-      alert(error.detail || 'Authentication failed');
-    }
+      ('/dashboard');navigate
+    }  catch (error: any) {
+  console.log("Register Error:", error);
+
+  const message =
+    error?.message ||
+    error?.detail ||
+    error?.response?.data?.message ||
+    "";
+
+  if (
+    message.toLowerCase().includes("already registered") ||
+    message.toLowerCase().includes("already exists")
+  ) {
+   navigate("/login", {
+  replace: true,
+  state: {
+    email: formData.email,
+    message: "This email is already registered. Please login.",
+  },
+});
+
+    navigate("/login", {
+      state: {
+        email: formData.email,
+        message: "Email already exists. Please login.",
+      },
+      replace: true,
+    });
+
+    return;
+  }
+
+  alert(message || "Authentication failed");
+}
   };
 
   return (
@@ -84,6 +118,11 @@ export default function Auth() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {loginMessage && (
+  <div className="mb-4 rounded-md bg-yellow-50 border border-yellow-300 text-yellow-800 p-3">
+    {loginMessage}
+  </div>
+)}
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>

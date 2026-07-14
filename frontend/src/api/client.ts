@@ -59,13 +59,21 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Format error response according to RFC 7807
-    const apiError: ApiError = error.response?.data || {
-      type: 'about:blank',
-      title: 'An error occurred',
-      status: error.response?.status || 500,
-      detail: error.message || 'Unknown error',
-    };
+    // Format error response according to RFC 7807.
+    // Some backends (e.g. Supabase Auth) don't return RFC 7807 shape and
+    // instead send { code, message } — normalize that into { detail, code }
+    // so every consumer of apiClient can rely on error.detail existing.
+    const rawData = error.response?.data as any;
+
+    const apiError: ApiError = rawData?.detail
+      ? rawData
+      : {
+          type: 'about:blank',
+          title: rawData?.code || 'An error occurred',
+          status: error.response?.status || 500,
+          detail: rawData?.message || error.message || 'Unknown error',
+          code: rawData?.code, // keep this so callers can branch on it
+        };
 
     return Promise.reject(apiError);
   }

@@ -12,6 +12,7 @@ export interface ApiErrorBody {
   status: number;
   detail: string;
   instance?: string;
+  //  code?: string;
 }
 
 export function sendError(res: Response, status: number, title: string, detail: string): Response {
