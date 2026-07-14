@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,19 +9,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { USER_ROLES } from '@/utils/constants';
 import { apiClient } from '@/api/client';
 
-
 export default function Auth() {
-
   const location = useLocation();
-  const loginMessage = location.state?.message;
   const navigate = useNavigate();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
-  
+
   const isLogin = location.pathname === '/login';
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [formData, setFormData] = useState({
-   email: location.state?.email || '',
+    email: '',
     password: '',
     companyName: '',
     mobile: '',
@@ -31,10 +28,19 @@ export default function Auth() {
     reraNumber: '',
   });
 
-  
+  // Prefill email if redirected here with ?email= (e.g. after a
+  // "account already exists" redirect from the registration flow)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const emailParam = params.get('email');
+    if (emailParam) {
+      setFormData((prev) => ({ ...prev, email: emailParam }));
+    }
+  }, [location.search]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (isLogin) {
         await login({ email: formData.email, password: formData.password });
@@ -70,41 +76,24 @@ export default function Auth() {
           }
         }
       }
-      ('/dashboard');navigate
-    }  catch (error: any) {
-  console.log("Register Error:", error);
+      navigate('/dashboard');
+    } catch (error: any) {
+      if (!isLogin) {
+        // Registration failed — check if it's because the account already exists
+        const message = (error?.message || error?.detail || '').toString();
+        const isDuplicateAccount =
+          /already registered|already exists/i.test(message) ||
+          error?.status === 422 ||
+          error?.status === 400;
 
-  const message =
-    error?.message ||
-    error?.detail ||
-    error?.response?.data?.message ||
-    "";
-
-  if (
-    message.toLowerCase().includes("already registered") ||
-    message.toLowerCase().includes("already exists")
-  ) {
-   navigate("/login", {
-  replace: true,
-  state: {
-    email: formData.email,
-    message: "This email is already registered. Please login.",
-  },
-});
-
-    navigate("/login", {
-      state: {
-        email: formData.email,
-        message: "Email already exists. Please login.",
-      },
-      replace: true,
-    });
-
-    return;
-  }
-
-  alert(message || "Authentication failed");
-}
+        if (isDuplicateAccount) {
+          alert('An account with this email already exists. Please log in instead.');
+          navigate(`/login?email=${encodeURIComponent(formData.email)}`);
+          return;
+        }
+      }
+      alert(error.message || error.detail || 'Authentication failed');
+    }
   };
 
   return (
@@ -112,17 +101,12 @@ export default function Auth() {
       <CardHeader>
         <CardTitle>{isLogin ? 'Login' : 'Create Account'}</CardTitle>
         <CardDescription>
-          {isLogin 
-            ? 'Enter your credentials to access your account' 
+          {isLogin
+            ? 'Enter your credentials to access your account'
             : 'Join India Property Network Ltd.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {loginMessage && (
-  <div className="mb-4 rounded-md bg-yellow-50 border border-yellow-300 text-yellow-800 p-3">
-    {loginMessage}
-  </div>
-)}
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
@@ -135,7 +119,7 @@ export default function Auth() {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="role">Role *</Label>
                 <select
@@ -257,8 +241,8 @@ export default function Auth() {
             </>
           )}
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={isLoggingIn || isRegistering}
           >
