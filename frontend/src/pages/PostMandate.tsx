@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { ASSET_CLASSES, INDIAN_CITIES, INDIAN_STATES, PARTNER_CATEGORIES } from '@/utils/constants';
+import { ASSET_CLASSES, INDIAN_STATES, PARTNER_CATEGORIES } from '@/utils/constants';
 import { MandateType, CreateMandateRequest, PropertyType, PartnerCategory } from '@/types';
 
 export default function PostMandate() {
@@ -209,23 +209,19 @@ export default function PostMandate() {
               <h3 className="text-lg font-semibold">Location</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">City *</Label>
-                  <select
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    required
-                  >
-                    <option value="">Select City</option>
-                    {INDIAN_CITIES.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Input
+  id="city"
+  list="city-suggestions"
+  value={formData.city}
+  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+  placeholder="e.g., Mumbai"
+  required
+/>
+{/* <datalist id="city-suggestions">
+  {INDIAN_CITIES.map((city) => (
+    <option key={city} value={city} />
+  ))}
+</datalist> */}
 
                 <div>
                   <Label htmlFor="state">State *</Label>
