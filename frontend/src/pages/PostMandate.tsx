@@ -209,14 +209,16 @@ export default function PostMandate() {
               <h3 className="text-lg font-semibold">Location</h3>
               
               <div className="grid md:grid-cols-2 gap-4">
-                <Input
-  id="city"
-  list="city-suggestions"
-  value={formData.city}
-  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-  placeholder="e.g., Mumbai"
-  required
-/>
+ <div>
+  <Label htmlFor="city">City *</Label>
+  <Input
+    id="city"
+    value={formData.city}
+    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+    placeholder="e.g., Mumbai"
+    required
+  />
+</div>
 {/* <datalist id="city-suggestions">
   {INDIAN_CITIES.map((city) => (
     <option key={city} value={city} />
