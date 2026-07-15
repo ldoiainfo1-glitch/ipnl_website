@@ -83,6 +83,7 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/rera-protocol" element={<ReraProtocol />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/mandates/:id" element={<MandateDetail />} />
 
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
@@ -95,7 +96,6 @@ function App() {
         {/* Protected Routes */}
         <Route element={<RequireAuth><WorkspaceLayout /></RequireAuth>}>
           <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/mandates/:id" element={<MandateDetail />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/post-mandate" element={<PostMandate />} />
           <Route path="/messages" element={<Messages />} />

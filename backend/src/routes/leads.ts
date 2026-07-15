@@ -23,14 +23,15 @@ router.post('/', verifySupabase, async (req, res) => {
   const supabase = getSupabaseAdmin();
   if (!supabase || !req.user) return unauthorized(res);
 
-  const { mandateTitle, mandateType, mandateCompany, mandateAsset, name, mobile, email } = req.body;
-  if (!mandateTitle || !mandateType || !mandateCompany) {
+  const { mandateId, mandateTitle, mandateType, mandateCompany, mandateAsset, name, mobile, email } = req.body;
+  if ( !mandateId || !mandateTitle || !mandateType || !mandateCompany) {
     return badRequest(res, 'Mandate details are required');
   }
 
   try {
     const { error } = await supabase.from('leads').insert({
       user_id: req.user.id,
+      mandate_id: mandateId,
       name: name || req.user.email || 'Unknown',
       mobile: mobile || '',
       email: email || req.user.email || '',

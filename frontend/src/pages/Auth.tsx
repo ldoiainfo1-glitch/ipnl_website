@@ -58,16 +58,21 @@ export default function Auth() {
           gst: formData.gst,
           reraNumber: formData.reraNumber,
         });
-        // Submit pending mandate enquiry if the user came from a mandate preview
+        // Submit pending mandate enquiry if the user came from a shared mandate link
         const pendingEnquiry = localStorage.getItem('pendingMandateEnquiry');
         if (pendingEnquiry) {
           try {
             const enquiryData = JSON.parse(pendingEnquiry);
-            await apiClient.post('/leads', {
-              ...enquiryData,
-              name: formData.companyName,
-              mobile: formData.mobile,
-              email: formData.email,
+           await apiClient.post('/leads', {
+               mandateId: enquiryData.mandateId,
+               mandateTitle: enquiryData.mandateTitle,
+               mandateCompany: enquiryData.mandateCompany,
+               mandateType: enquiryData.mandateType,
+               mandateAsset: enquiryData.mandateAsset,
+ 
+                 name: formData.companyName,
+                 mobile: formData.mobile,
+                 email: formData.email,
             });
           } catch {
             // non-critical — don't block navigation
@@ -260,7 +265,14 @@ export default function Auth() {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
-              onClick={() => navigate(isLogin ? '/register' : '/login')}
+              onClick={() =>
+            navigate(
+                  isLogin ? '/register' : '/login',
+               {
+                   state: location.state,
+                }
+                )
+             }
               className="text-primary hover:underline"
             >
               {isLogin ? 'Sign up' : 'Login'}
