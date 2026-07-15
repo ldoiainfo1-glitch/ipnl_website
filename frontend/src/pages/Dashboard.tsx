@@ -16,6 +16,7 @@ import {
   Inbox,
 } from 'lucide-react';
 import { formatIndianNumber, formatRelativeTime } from '@/utils/formatters';
+import { ShareOnWhatsAppButton } from '@/components/ShareOnWhatsAppButton';
 
 const MODERATION_LABELS: Record<string, string> = {
   PENDING: 'Pending Approval',
@@ -209,13 +210,19 @@ export default function Dashboard() {
                       </p>
                     )}
                   </div>
-                  <div className="text-right ml-4">
+                  <div className="text-right ml-4 flex flex-col items-end gap-2">
                     <p className="font-bold text-primary">
                       {formatIndianNumber(mandate.ticketSize)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {mandate.viewCount} views
                     </p>
+                    <ShareOnWhatsAppButton
+                      title={mandate.title}
+                      url={`${window.location.origin}/mandates/${mandate.id}`}
+                      iconOnly
+                      size="icon"
+                    />
                   </div>
                 </div>
               ))}

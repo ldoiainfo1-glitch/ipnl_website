@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { formatIndianNumber, formatRelativeTime, formatPartnerCategory } from '@/utils/formatters';
 import { ASSET_CLASSES, INDIAN_CITIES, MANDATE_TYPES } from '@/utils/constants';
+import { ShareOnWhatsAppButton } from '@/components/ShareOnWhatsAppButton';
 import { Mandate, MandateFilters, MandateType, AssetClass } from '@/types';
 
 export default function Marketplace() {
@@ -278,6 +279,11 @@ export default function Marketplace() {
                         <MessageSquare className="w-4 h-4 mr-1" />
                         <span className="hidden sm:inline">{sentMandateIds.has(mandate.id) ? 'Message Sent' : 'Message Owner'}</span>
                       </Button>
+                      <ShareOnWhatsAppButton
+                        title={mandate.title}
+                        url={`${window.location.origin}/mandates/${mandate.id}`}
+                        message={`Check out this mandate on IPNL: ${mandate.title} — ${formatIndianNumber(mandate.ticketSize)} in ${mandate.city}\n${window.location.origin}/mandates/${mandate.id}`}
+                      />
                     </div>
                   </div>
                 </CardContent>
