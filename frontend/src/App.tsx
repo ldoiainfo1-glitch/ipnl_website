@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Layouts
 import AuthLayout from './components/layout/AuthLayout';
@@ -48,8 +48,27 @@ import { useSocket } from './hooks/useSocket';
 import { useAdminAccess } from './hooks/useAdminAccess';
 import { FEATURES } from './lib/features';
 
-function App() {
+// Wraps protected routes: if the user isn't authenticated, redirects to
+// /login and remembers the page they were trying to reach (via `location
+// .state.from`) so Auth.tsx can send them back there after login.
+function RequireAuth({ children }: { children: JSX.Element }) {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location.pathname + location.search }}
+        replace
+      />
+    );
+  }
+
+  return children;
+}
+
+function App() {
   const isAdmin = useAdminAccess();
   useSocket(); // Initialize Socket.io connection
 
@@ -74,11 +93,7 @@ function App() {
         </Route>
 
         {/* Protected Routes */}
-        <Route
-          element={
-            isAuthenticated ? <WorkspaceLayout /> : <Navigate to="/login" replace />
-          }
-        >
+        <Route element={<RequireAuth><WorkspaceLayout /></RequireAuth>}>
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/mandates/:id" element={<MandateDetail />} />
           <Route path="/dashboard" element={<Dashboard />} />

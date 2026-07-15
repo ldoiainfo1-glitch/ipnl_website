@@ -76,7 +76,8 @@ export default function Auth() {
           }
         }
       }
-      navigate('/dashboard');
+      const redirectTo = (location.state as { from?: string } | null)?.from || '/dashboard';
+      navigate(redirectTo, { replace: true });
     } catch (error: any) {
       if (!isLogin) {
         // Registration failed — check if it's because the account already exists
@@ -88,7 +89,11 @@ export default function Auth() {
 
         if (isDuplicateAccount) {
           alert('An account with this email already exists. Please log in instead.');
-          navigate(`/login?email=${encodeURIComponent(formData.email)}`);
+          navigate(`/login?email=${encodeURIComponent(formData.email)}`, {
+            state: (location.state as { from?: string } | null)?.from
+              ? { from: (location.state as { from?: string }).from }
+              : undefined,
+          });
           return;
         }
       }
