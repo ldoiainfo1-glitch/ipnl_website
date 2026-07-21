@@ -43,21 +43,26 @@ export function ShareOnWhatsAppButton({
   iconOnly = false,
   className,
 }: ShareOnWhatsAppButtonProps) {
- const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
-  event.stopPropagation();
-  event.preventDefault();
+  const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const text = message || `Check out this mandate:${url}`;
 
-  const text = message || `Check out this mandate: ${url}`;
+     // TEMP DEBUG — remove after diagnosing the emoji issue
+    console.log('[WA DEBUG] raw text:', text);
+    console.log('[WA DEBUG] char codes:',
+      [...text.slice(0, 30)].map(c => `${c} (U+${c.codePointAt(0)?.toString(16)})`));
 
-  console.log("TEXT:", text);
-  console.log("ENCODED:", encodeURIComponent(text));
 
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
 
-  console.log("WA URL:", waUrl);
+    // TEMP DEBUG — remove after diagnosing the emoji issue
+    console.log('[WA DEBUG] encoded waUrl:', waUrl);
 
-  window.open(waUrl, '_blank', 'noopener,noreferrer');
-};
+    
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <Button
       type="button"
