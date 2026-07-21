@@ -46,8 +46,20 @@ export function ShareOnWhatsAppButton({
   const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    const text = message || `Check out this mandate: ${url}`;
+    const text = message || `Check out this mandate:${url}`;
+
+     // TEMP DEBUG — remove after diagnosing the emoji issue
+    console.log('[WA DEBUG] raw text:', text);
+    console.log('[WA DEBUG] char codes:',
+      [...text.slice(0, 30)].map(c => `${c} (U+${c.codePointAt(0)?.toString(16)})`));
+
+
     const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+
+    // TEMP DEBUG — remove after diagnosing the emoji issue
+    console.log('[WA DEBUG] encoded waUrl:', waUrl);
+
+    
     window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
