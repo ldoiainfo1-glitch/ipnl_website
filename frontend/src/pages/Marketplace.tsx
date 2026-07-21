@@ -280,10 +280,10 @@ export default function Marketplace() {
                         <span className="hidden sm:inline">{sentMandateIds.has(mandate.id) ? 'Message Sent' : 'Message Owner'}</span>
                       </Button>
                       <ShareOnWhatsAppButton
-                         title={mandate.title}
-                         url={`${window.location.origin}/mandates/${mandate.id}`}
-                         message={`\u{1F4C4} ${mandate.title}\n\u{1F4B0} ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CD} ${mandate.city}\n\n\u{2705} Check out this mandate on IPNL:\n${window.location.origin}/mandates/${mandate.id}`}
-                       />
+                        title={mandate.title}
+                        url={`${window.location.origin}/mandates/${mandate.id}`}
+                        message={`Check out this mandate on IPNL:\n\n${mandate.title}\n\u{1F4B0} ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CD} ${mandate.city}\n\n${window.location.origin}/mandates/${mandate.id}`}
+                      />
                     </div>
                   </div>
                 </CardContent>
