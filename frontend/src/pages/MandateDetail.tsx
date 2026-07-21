@@ -22,7 +22,7 @@ import { ShareOnWhatsAppButton } from '@/components/ShareOnWhatsAppButton';
 export default function MandateDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const { mandate, isLoading } = useMandate(id!);
   const { sendIntro, quotaStatus, isSending } = useIntros();
   
@@ -51,6 +51,27 @@ export default function MandateDetail() {
       alert(error.detail || 'Failed to send introduction');
     }
   };
+
+  const handleSendEnquiry = () => {
+  if (!mandate) return;
+
+  localStorage.setItem(
+    'pendingMandateEnquiry',
+    JSON.stringify({
+      mandateId: mandate.id,
+      mandateTitle: mandate.title,
+      mandateCompany: mandate.user?.companyName,
+      mandateType: mandate.type,
+      mandateAsset: mandate.assetClass,
+    })
+  );
+
+  navigate('/register', {
+    state: {
+      from: `/mandates/${mandate.id}`,
+    },
+  });
+};
 
   if (isLoading) {
     return (
@@ -203,7 +224,7 @@ Check out this mandate on IPNL.`}
       </Card>
 
       {/* Posted By */}
-      {mandate.user && !isMyMandate && user?.tier !== 'OBSERVER' && (
+      {mandate.user && !isMyMandate && (
         <Card>
           <CardHeader>
             <CardTitle>Posted By</CardTitle>
@@ -224,67 +245,103 @@ Check out this mandate on IPNL.`}
 
       {/* Action Buttons */}
       {!isMyMandate && (
-        <Card>
-          <CardContent className="p-6">
-            {user?.tier === 'OBSERVER' ? (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground mb-4">
-                  Upgrade to VERIFIED tier to send introductions
-                </p>
-                <Button onClick={() => navigate('/settings')}>
-                  Upgrade Account
-                </Button>
-              </div>
-            ) : showIntroForm ? (
-              <div className="space-y-4">
-                <div>
-                  <Label>Introduction Message</Label>
-                  <Textarea
-                    placeholder="Introduce yourself and explain your interest in this mandate..."
-                    value={introMessage}
-                    onChange={(e) => setIntroMessage(e.target.value)}
-                    rows={6}
-                  />
-                </div>
-                <div className="flex space-x-3">
-                  <Button 
-                    onClick={handleSendIntro} 
-                    disabled={!introMessage.trim() || isSending}
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    {isSending ? 'Sending...' : 'Send Introduction'}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowIntroForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {quotaStatus?.remaining || 0} introductions remaining this month
-                </p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <Button 
-                  size="lg"
-                  onClick={() => setShowIntroForm(true)}
-                  disabled={!canSendIntro}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Request Introduction
-                </Button>
-                {!canSendIntro && (quotaStatus?.remaining === 0) && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    You've used all your introductions this month
-                  </p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+  <Card>
+    <CardContent className="p-6">
+
+      {!isAuthenticated ? (
+
+        <div className="text-center">
+          <Button
+            size="lg"
+            onClick={handleSendEnquiry}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Send Enquiry
+          </Button>
+
+          <p className="text-sm text-muted-foreground mt-3">
+            Register for free to send your enquiry directly to the mandate owner.
+          </p>
+        </div>
+
+      ) : user?.tier === 'OBSERVER' ? (
+
+        <div className="text-center py-4">
+          <p className="text-muted-foreground mb-4">
+            Upgrade to VERIFIED tier to send introductions
+          </p>
+
+          <Button onClick={() => navigate('/settings')}>
+            Upgrade Account
+          </Button>
+        </div>
+
+      ) : showIntroForm ? (
+
+        <div className="space-y-4">
+
+          <div>
+            <Label>Introduction Message</Label>
+
+            <Textarea
+              placeholder="Introduce yourself and explain your interest in this mandate..."
+              value={introMessage}
+              onChange={(e) => setIntroMessage(e.target.value)}
+              rows={6}
+            />
+          </div>
+
+          <div className="flex space-x-3">
+
+            <Button
+              onClick={handleSendIntro}
+              disabled={!introMessage.trim() || isSending}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {isSending ? 'Sending...' : 'Send Introduction'}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowIntroForm(false)}
+            >
+              Cancel
+            </Button>
+
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            {quotaStatus?.remaining || 0} introductions remaining this month
+          </p>
+
+        </div>
+
+      ) : (
+
+        <div className="text-center">
+
+          <Button
+            size="lg"
+            onClick={() => setShowIntroForm(true)}
+            disabled={!canSendIntro}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Request Introduction
+          </Button>
+
+          {!canSendIntro && quotaStatus?.remaining === 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              You've used all your introductions this month
+            </p>
+          )}
+
+        </div>
+
       )}
+
+    </CardContent>
+  </Card>
+)}
     </div>
   );
 }

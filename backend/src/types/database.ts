@@ -438,6 +438,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string | null;
+          mandate_id: string | null;
           name: string;
           mobile: string;
           email: string;
@@ -450,6 +451,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id?: string | null;
+          mandate_id: string | null;
           name: string;
           mobile?: string;
           email?: string;
@@ -460,6 +462,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<{
+          mandate_id: string | null;
           name: string;
           mobile: string;
           email: string;
