@@ -106,7 +106,7 @@ export default function MandateDetail() {
         <ShareOnWhatsAppButton
   title={mandate.title}
   url={window.location.href}
-  message={`${window.location.href}\n\n\u{1F4C4} Title: ${mandate.title}\n\u{1F4B5} Ticket Size: ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CC} City: ${mandate.city}\n\n\u{2705} Check out this mandate on IPNL.`}
+  message={`${window.location.href}\n\n\u{1F4C4} Title: ${mandate.title}\n\u{1F4B5} Ticket Size: ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CC} City: ${mandate.city}\n\n\u{2705} For Full Details of this Deal on IPNL Touch this Link.`}
 />
       </div>
 

@@ -46,7 +46,7 @@ export function ShareOnWhatsAppButton({
   const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    const text = message || `Check out this mandate:${url}`;
+    const text = message || `For Full Details of this Deal on IPNL Touch this Link:${url}`;
 
      // TEMP DEBUG — remove after diagnosing the emoji issue
     console.log('[WA DEBUG] raw text:', text);
