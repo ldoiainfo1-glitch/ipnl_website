@@ -83,10 +83,16 @@ export default function MandateDetail() {
           Back
         </Button>
         <ShareOnWhatsAppButton
-          title={mandate.title}
-          url={window.location.href}
-          message={`Check out this mandate on IPNL: ${mandate.title} — ${formatIndianNumber(mandate.ticketSize)} in ${mandate.city}\n${window.location.href}`}
-        />
+  title={mandate.title}
+  url={window.location.href}
+  message={`${window.location.href}
+
+*Title:* ${mandate.title}
+*Ticket Size:* ${formatIndianNumber(mandate.ticketSize)}
+*City:* ${mandate.city}
+
+Check out this mandate on IPNL.`}
+/>
       </div>
 
       {/* Header Card */}

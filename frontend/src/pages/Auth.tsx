@@ -50,11 +50,11 @@ export default function Auth() {
         console.log('Form Data:', formData);
         await register({
           email: formData.email,
-          password: formData.password,
+          password: formData.password, 
           companyName: formData.companyName,
           mobile: formData.mobile,
-          role: formData.role as any,
-          pan: formData.pan,
+          role: formData.role as any, 
+          pan: formData.pan, 
           gst: formData.gst,
           reraNumber: formData.reraNumber,
         });
