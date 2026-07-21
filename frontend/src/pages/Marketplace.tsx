@@ -282,7 +282,7 @@ export default function Marketplace() {
                       <ShareOnWhatsAppButton
                         title={mandate.title}
                         url={`${window.location.origin}/mandates/${mandate.id}`}
-                        message={`${mandate.title}\n\u{1F4B0} ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CD} ${mandate.city}\n\n For Full Details of this Deal on IPNL Touch this Link :${window.location.origin}/mandates/${mandate.id}`}
+                        message={`*${mandate.title}*\n\u{1F4B0} ${formatIndianNumber(mandate.ticketSize)}\n\u{1F4CD} ${mandate.city}\n\n For Full Details of this Deal on IPNL Touch this Link :\n\n${window.location.origin}/mandates/${mandate.id}`}
                       />
                     </div>
                   </div>
