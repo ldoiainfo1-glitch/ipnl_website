@@ -36,7 +36,6 @@ function WhatsAppIcon({ className }: { className?: string }) {
  * Safe to use inside a clickable card: it calls stopPropagation internally.
  */
 export function ShareOnWhatsAppButton({
-  title,
   url,
   message,
   size = 'sm',
@@ -47,7 +46,7 @@ export function ShareOnWhatsAppButton({
   const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    const text = message || `Check out this mandate: ${title}\n${url}`;
+    const text = message || `Check out this mandate: ${url}`;
     const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
