@@ -108,10 +108,11 @@ export default function MandateDetail() {
   url={window.location.href}
   message={`${window.location.href}
 
-📄 Title: ${mandate.title}
-💵 Ticket Size: ${formatIndianNumber(mandate.ticketSize)}
-📌 City: ${mandate.city}
- Check out this mandate on IPNL.`}
+\u{1F4C4} Title: ${mandate.title}
+\u{1F4B5} Ticket Size: ${formatIndianNumber(mandate.ticketSize)}
+\u{1F4CC} City: ${mandate.city}
+
+\u{2705} Check out this mandate on IPNL.`}
 />
       </div>
 
