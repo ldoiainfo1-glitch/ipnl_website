@@ -43,14 +43,21 @@ export function ShareOnWhatsAppButton({
   iconOnly = false,
   className,
 }: ShareOnWhatsAppButtonProps) {
-  const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    event.preventDefault();
-    const text = message || `Check out this mandate: ${url}`;
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
-  };
+ const handleShare = (event: React.MouseEvent<HTMLButtonElement>) => {
+  event.stopPropagation();
+  event.preventDefault();
 
+  const text = message || `Check out this mandate: ${url}`;
+
+  console.log("TEXT:", text);
+  console.log("ENCODED:", encodeURIComponent(text));
+
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+
+  console.log("WA URL:", waUrl);
+
+  window.open(waUrl, '_blank', 'noopener,noreferrer');
+};
   return (
     <Button
       type="button"
